@@ -1,0 +1,3 @@
+# Local config files (secrets, machine-specific)
+config/config.txt
+python/config/config.txt
