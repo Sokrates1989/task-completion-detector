@@ -1,0 +1,177 @@
+import json
+import os
+import platform
+from typing import Any, Dict
+
+
+DEFAULT_MONITOR = {
+    "intervalSeconds": 1.0,
+    "stableSecondsThreshold": 30.0,
+    "differenceThreshold": 2.0,
+}
+
+
+def _yes_no(prompt: str, default: bool) -> bool:
+    suffix = "[Y/n]" if default else "[y/N]"
+    while True:
+        raw = input(f"{prompt} {suffix} ").strip().lower()
+        if not raw:
+            return default
+        if raw in ("y", "yes"):
+            return True
+        if raw in ("n", "no"):
+            return False
+        print("Please answer y or n.")
+
+
+def _input_float(prompt: str, default: float) -> float:
+    while True:
+        raw = input(f"{prompt} [{default}]: ").strip()
+        if not raw:
+            return default
+        try:
+            return float(raw)
+        except ValueError:
+            print("Please enter a valid number.")
+
+
+def _build_config_interactive(existing: Dict[str, Any]) -> Dict[str, Any]:
+    print("\n=== Guided configuration for AI Task Completion Detector ===")
+
+    # Monitor settings
+    print("\nCurrent default monitor settings:")
+    print(f"  intervalSeconds: {DEFAULT_MONITOR['intervalSeconds']}")
+    print(f"  stableSecondsThreshold: {DEFAULT_MONITOR['stableSecondsThreshold']}")
+    print(f"  differenceThreshold: {DEFAULT_MONITOR['differenceThreshold']}")
+
+    use_defaults = _yes_no("Use these default monitor settings?", default=True)
+    if use_defaults:
+        monitor = dict(DEFAULT_MONITOR)
+    else:
+        monitor = {
+            "intervalSeconds": _input_float("intervalSeconds (seconds between checks)", DEFAULT_MONITOR["intervalSeconds"]),
+            "stableSecondsThreshold": _input_float(
+                "stableSecondsThreshold (seconds of no change before notifying)",
+                DEFAULT_MONITOR["stableSecondsThreshold"],
+            ),
+            "differenceThreshold": _input_float(
+                "differenceThreshold (pixel change sensitivity; lower = stricter)",
+                DEFAULT_MONITOR["differenceThreshold"],
+            ),
+        }
+
+    # Notifications
+    print("\nNotification channels:")
+    enable_telegram = _yes_no("Enable Telegram notifications?", default=False)
+    enable_email = _yes_no("Enable email notifications?", default=False)
+    enable_macos = _yes_no(
+        "Enable macOS local notifications?",
+        default=(platform.system() == "Darwin"),
+    )
+
+    telegram = existing.get("telegram", {}) if enable_telegram else {}
+    email = existing.get("email", {}) if enable_email else {}
+
+    if enable_telegram:
+        print("\nTelegram setup helper:")
+        print("We recommend using Telegram Desktop for easier setup.")
+
+        input(
+            "  Step 1: Install and open Telegram Desktop, then log in to your account. "
+            "Press Enter here once you are logged in..."
+        )
+
+        print("\n  Step 2: In Telegram, start a chat with @BotFather.")
+        print("          Send /newbot, then choose:")
+        print("            - A bot name, e.g. 'AI Task Watcher'")
+        print("            - A bot username, e.g. 'ai_task_watcher_bot'")
+        input("  Press Enter once BotFather has created the bot and shown you the HTTP API token...")
+
+        default_token = telegram.get("botToken", "")
+        print("\n  BotFather will show a line like 'Use this token to access the HTTP API: <TOKEN>'.")
+        print("  Step 3 expects exactly that HTTP API token string. Keep it private – it controls your bot.")
+        print("  This tool stores it only in your local config.txt and uses it solely to call Telegram's API ")
+        print("  to send you notifications; it is not uploaded anywhere else.")
+
+        bot_token_prompt = f"  Step 3: Paste your HTTP API token from BotFather [{default_token}]: "
+        bot_token = input(bot_token_prompt).strip() or default_token
+        telegram["botToken"] = bot_token
+
+        print("\n  Step 4: In Telegram, open a chat with your new bot.")
+        print("          Easiest is to click the t.me/<bot-username> link BotFather showed (e.g. t.me/ai_task_watcher_bot),")
+        print("          which will open a chat with the bot, then send a short message like 'hi'.")
+        input("  Press Enter once you have sent a message to your bot...")
+
+        print("\n  Step 5: In a browser, open this URL (you can Cmd+Click it in many terminals):")
+        print(f"          https://api.telegram.org/bot{bot_token}/getUpdates")
+        print("          In the JSON response, look for 'chat': { 'id': ... } – that 'id' is your chat ID.")
+        print("          If you only see an empty 'result': [] or no chat id yet, send another message to your bot and")
+        print("          refresh the page until a 'chat': { 'id': ... } entry appears.")
+
+        default_chat = telegram.get("chatID", "")
+        chat_prompt = f"  Step 6: Paste your chat ID [{default_chat}]: "
+        telegram["chatID"] = input(chat_prompt).strip() or default_chat
+
+    if enable_email:
+        print("\nEmail setup (you can leave fields empty to configure later):")
+        email["smtp_server"] = input(f"  smtp_server [{email.get('smtp_server', '')}]: ").strip() or email.get("smtp_server", "")
+        email["smtp_port"] = input(f"  smtp_port [{email.get('smtp_port', '465')}]: ").strip() or email.get("smtp_port", "465")
+        email["mail"] = input(f"  sender mail address [{email.get('mail', '')}]: ").strip() or email.get("mail", "")
+        email["password"] = input(f"  sender password [{email.get('password', '')}]: ").strip() or email.get("password", "")
+        email["receiver"] = input(f"  receiver mail address [{email.get('receiver', '')}]: ").strip() or email.get("receiver", "")
+
+    notifications = {
+        "useTelegram": bool(enable_telegram),
+        "useEmail": bool(enable_email),
+        "useMacOS": bool(enable_macos),
+    }
+
+    # Preserve any existing regions
+    regions = existing.get("regions", {})
+
+    cfg: Dict[str, Any] = {
+        "monitor": monitor,
+        "telegram": telegram,
+        "email": email,
+        "notifications": notifications,
+        "regions": regions,
+    }
+    return cfg
+
+
+def run_interactive() -> None:
+    # Mirror ConfigLoader base_dir resolution: three levels up from this file
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    config_dir = os.path.join(project_root, "config")
+    os.makedirs(config_dir, exist_ok=True)
+    config_path = os.path.join(config_dir, "config.txt")
+
+    existing: Dict[str, Any] = {}
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+        except Exception:
+            print(f"Existing config at {config_path} could not be parsed; starting from defaults.")
+            existing = {}
+
+        print(f"Existing config found at: {config_path}")
+        choice = input("[K]eep as is, [R]erun guided setup, or [E]dit manually? [k/r/e]: ").strip().lower() or "k"
+        if choice.startswith("k"):
+            print("Keeping existing config unchanged.")
+            return
+        if choice.startswith("e"):
+            if platform.system() == "Darwin":
+                os.system(f'open "{config_path}"')
+            else:
+                print(f"Please edit the config manually at: {config_path}")
+            return
+        # If 'r' or anything else: continue to guided setup and overwrite
+
+    new_cfg = _build_config_interactive(existing)
+
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump(new_cfg, f, indent=2)
+
+    print(f"\nConfig written to {config_path}")
+    print("You can rerun the guided setup anytime using 'python main.py setup-config' or edit the file directly.")

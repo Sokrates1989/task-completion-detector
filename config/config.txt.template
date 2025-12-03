@@ -1,0 +1,24 @@
+{
+  "monitor": {
+    "intervalSeconds": 1.0,
+    "stableSecondsThreshold": 30.0,
+    "differenceThreshold": 2.0
+  },
+  "telegram": {
+    "botToken": "BOT:TOKEN",
+    "chatID": "YOUR_CHAT_ID"
+  },
+  "email": {
+    "smtp_server": "SMTP SERVER OF SENDER MAIL",
+    "smtp_port": "465",
+    "mail": "SENDER MAIL ADDRESS",
+    "password": "SENDER MAIL PASSWORD",
+    "receiver": "RECEIVER MAIL ADDRESS"
+  },
+  "notifications": {
+    "useTelegram": true,
+    "useEmail": false,
+    "useMacOS": true
+  },
+  "regions": {}
+}
