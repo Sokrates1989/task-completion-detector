@@ -6,8 +6,8 @@ from typing import Any, Dict
 
 DEFAULT_MONITOR = {
     "intervalSeconds": 1.0,
-    "stableSecondsThreshold": 30.0,
-    "differenceThreshold": 2.0,
+    "stableSecondsThreshold": 40.0,
+    "differenceThreshold": 1.0,
 }
 
 
