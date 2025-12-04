@@ -78,7 +78,7 @@ class RegionMonitor:
         last_image = None
 
         print(
-            f"Monitoring region '{self._name}' at interval {interval}s, "
+            f"Monitoring selected region at interval {interval}s, "
             f"declaring stable after {threshold_seconds}s with diff threshold {diff_threshold}..."
         )
 
@@ -97,7 +97,7 @@ class RegionMonitor:
 
                 if stable_time >= threshold_seconds:
                     print(
-                        f"Region '{self._name}' stable for {stable_time:.0f}s (score <= {diff_threshold}). Sending notifications."
+                        f"Selected region stable for {stable_time:.0f}s (score <= {diff_threshold}). Sending notifications."
                     )
                     self._send_notifications(stable_time)
 
