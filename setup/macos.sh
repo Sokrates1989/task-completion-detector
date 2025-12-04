@@ -19,6 +19,5 @@ else
   fi
 fi
 
-# Step 2: Ensure installer is executable and run it
-chmod +x install.sh
-./install.sh
+# Step 2: Ensure installer is executable and run it with sudo for symlink creation
+sudo bash install.sh

@@ -61,7 +61,7 @@ class RegionMonitor:
         return float(stat.mean[0])  # 0..255
 
     def _send_notifications(self, stable_seconds: float) -> None:
-        message = f"No more activity detected in the selected area '{self._name}'."
+        message = f"No more activity detected in the selected area for {stable_seconds:.0f} seconds."
         if self._telegram and self._telegram.is_configured():
             self._telegram.send_message(message)
         if self._email and self._email.is_configured():
