@@ -61,10 +61,7 @@ class RegionMonitor:
         return float(stat.mean[0])  # 0..255
 
     def _send_notifications(self, stable_seconds: float) -> None:
-        message = (
-            f"Region '{self._name}' appears stable for {stable_seconds:.0f} seconds. "
-            "Your AI task may be finished or waiting for input."
-        )
+        message = f"No more activity detected in the selected area '{self._name}'."
         if self._telegram and self._telegram.is_configured():
             self._telegram.send_message(message)
         if self._email and self._email.is_configured():

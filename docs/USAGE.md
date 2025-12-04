@@ -17,23 +17,39 @@ Notifications can be sent via:
 
 ## Commands and launchers
 
-After installation you can use either the launchers or the Python CLI.
+After installation you can use the `task-watch` launcher (recommended) or, for advanced usage, the Python CLI.
 
-### Launchers (recommended)
+### task-watch (recommended)
 
-- **From Terminal:**
-  - `ai-select` – select a screen region and immediately start monitoring it.
-  - `ai-watch` – monitor the last selected region again.
-- **From Finder:**
-  - Double-click `ai-select.command` or `ai-watch.command` on your Desktop.
+**From Terminal:**
 
-### Python CLI (inside the `python/` folder)
+- `task-watch --select-region`  – select a screen region and immediately start monitoring it.
+  - Short aliases: `task-watch --select` or `task-watch -r`.
+- `task-watch` – monitor the last selected default region again.
+- `task-watch --config` – rerun the guided configuration wizard / config editor.
+ - `task-watch --update` – update the local git clone of task-completion-detector (when installed from git) and exit.
+
+**From Finder:**
+
+- Double-click `task-watch.command` on your Desktop.
+- Backward-compatible shortcuts `ai-select.command` and `ai-watch.command` are also provided and forward to the same behaviors.
+
+**Legacy aliases (still supported):**
+
+- `ai-select` behaves like `task-watch --select-region`.
+- `ai-watch` behaves like `task-watch`.
+
+### Python CLI (inside the `python/` folder, advanced)
 
 ```bash
 cd /path/to/task-completion-detector/python
-python main.py select-region    # select region only
-python main.py monitor          # monitor last saved region
-python main.py setup-config     # rerun guided configuration
+
+# Re-run the guided configuration / config editor
+python main.py setup-config
+
+# Low-level region control (normally you just use task-watch)
+python main.py select-region --name windsurf_panel
+python main.py monitor --name windsurf_panel
 ```
 
 ---
@@ -49,22 +65,27 @@ python main.py setup-config     # rerun guided configuration
    - For Telegram and email, follow the prompts to enter the required credentials.
 
 3. **Select the region to watch:**
-   - Run `ai-select` (Terminal) or double-click `ai-select.command`.
-   - Follow the on-screen prompts:
+- Run `task-watch --select-region` (Terminal) or double-click `task-watch.command`.
+  - Follow the on-screen prompts:
      - Click once at the top-left corner of the region.
      - Click once at the bottom-right corner of the region.
    - The selected region is stored in `config/config.txt` as your default.
 
 4. **Let the tool monitor the region:**
-   - After a successful selection via `ai-select`, monitoring starts automatically.
-   - You can also run `ai-watch` later to reuse the last selected region.
+- After a successful selection via `task-watch --select-region`, monitoring starts automatically.
+- You can also run `task-watch` later to reuse the last selected default region.
 
 5. **Get notified when the AI stops changing the UI:**
    - The monitor checks the region every `intervalSeconds` seconds.
    - When the visual difference stays below `differenceThreshold` for `stableSecondsThreshold` seconds,
      it treats the task as "completed / needs your attention" and sends notifications.
 
-You can tune these thresholds via the guided config or by editing `monitor` settings in `config/config.txt`.
+You can tune these thresholds by:
+
+- Running `task-watch --config` to rerun the guided configuration wizard. If a config already exists, it:
+  - Shows your current monitor settings as defaults.
+  - Lets you re-enable/disable Telegram, email, or macOS notifications and update credentials.
+- Manually editing the `monitor` and `notifications` sections in `config/config.txt`.
 
 ---
 

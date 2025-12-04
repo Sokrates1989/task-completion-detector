@@ -11,7 +11,7 @@
 
 ## Option 1: Quick install on macOS (recommended)
 
-If you want the default setup with Desktop shortcuts and global `ai-select` / `ai-watch` commands, run:
+If you want the default setup with Desktop shortcuts and a global `task-watch` command (plus legacy `ai-select` / `ai-watch` aliases), run:
 
 ```bash
 ORIGINAL_DIR=$(pwd)
@@ -27,16 +27,21 @@ What this does:
 - Downloads `setup/macos.sh` from this repository.
 - Clones `task-completion-detector` into `~/tools/task-completion-detector` (or updates it if already cloned).
 - Runs `./install.sh` inside that directory, which:
-  - Creates `ai-select` and `ai-watch` launchers and, if possible, symlinks them into `/usr/local/bin`.
-  - Creates double-clickable `ai-select.command` / `ai-watch.command` files on your Desktop.
+  - Creates a `task-watch` launcher and, if possible, symlinks it into `/usr/local/bin`.
+  - Also creates backward-compatible `ai-select` / `ai-watch` aliases that forward to `task-watch`.
+  - Creates double-clickable `task-watch.command`, `ai-select.command` and `ai-watch.command` files on your Desktop.
   - Creates a Python virtual environment under `python/.venv` and installs the required packages.
   - Starts a guided configuration wizard to set up monitoring defaults and notification channels.
   - Fixes ownership of the `config` directory when run with `sudo` so your normal user can edit it.
 
 After this finishes you should be able to:
 
-- From Terminal: run `ai-select` or `ai-watch`.
-- From Finder: double-click `ai-select.command` or `ai-watch.command` on your Desktop.
+- From Terminal: run `task-watch` as the main entrypoint:
+  - `task-watch --select-region` to select a region and start monitoring immediately.
+  - `task-watch` to reuse the last selected default region.
+  - `task-watch --config` to rerun the guided configuration / config editor.
+- `ai-select` and `ai-watch` are provided as backward-compatible aliases for the same behaviors.
+- From Finder: double-click `task-watch.command`, `ai-select.command` or `ai-watch.command` on your Desktop.
 
 > macOS will ask for *Screen Recording* permission the first time you capture the screen. Grant it so the tool can watch your AI window.
 
@@ -73,7 +78,7 @@ After this finishes you should be able to:
 ## Troubleshooting
 
 - **Cannot create `/usr/local/bin` symlinks:**
-  - Run `./install.sh` with `sudo` if you want global `ai-select` / `ai-watch` commands.
+  - Run `./install.sh` with `sudo` if you want global `task-watch` (and alias) commands.
   - The script will attempt to fix the ownership of the `config` directory back to your normal user.
 
 - **No macOS notification appears:**

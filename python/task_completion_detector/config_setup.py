@@ -38,25 +38,32 @@ def _input_float(prompt: str, default: float) -> float:
 def _build_config_interactive(existing: Dict[str, Any]) -> Dict[str, Any]:
     print("\n=== Guided configuration for AI Task Completion Detector ===")
 
-    # Monitor settings
-    print("\nCurrent default monitor settings:")
-    print(f"  intervalSeconds: {DEFAULT_MONITOR['intervalSeconds']}")
-    print(f"  stableSecondsThreshold: {DEFAULT_MONITOR['stableSecondsThreshold']}")
-    print(f"  differenceThreshold: {DEFAULT_MONITOR['differenceThreshold']}")
+    existing_monitor = existing.get("monitor", {})
+    monitor_defaults = {
+        "intervalSeconds": float(existing_monitor.get("intervalSeconds", DEFAULT_MONITOR["intervalSeconds"])),
+        "stableSecondsThreshold": float(existing_monitor.get("stableSecondsThreshold", DEFAULT_MONITOR["stableSecondsThreshold"])),
+        "differenceThreshold": float(existing_monitor.get("differenceThreshold", DEFAULT_MONITOR["differenceThreshold"])),
+    }
 
-    use_defaults = _yes_no("Use these default monitor settings?", default=True)
+    # Monitor settings
+    print("\nCurrent monitor settings (from existing config or defaults):")
+    print(f"  intervalSeconds: {monitor_defaults['intervalSeconds']}")
+    print(f"  stableSecondsThreshold: {monitor_defaults['stableSecondsThreshold']}")
+    print(f"  differenceThreshold: {monitor_defaults['differenceThreshold']}")
+
+    use_defaults = _yes_no("Keep these monitor settings?", default=True)
     if use_defaults:
-        monitor = dict(DEFAULT_MONITOR)
+        monitor = dict(monitor_defaults)
     else:
         monitor = {
-            "intervalSeconds": _input_float("intervalSeconds (seconds between checks)", DEFAULT_MONITOR["intervalSeconds"]),
+            "intervalSeconds": _input_float("intervalSeconds (seconds between checks)", monitor_defaults["intervalSeconds"]),
             "stableSecondsThreshold": _input_float(
                 "stableSecondsThreshold (seconds of no change before notifying)",
-                DEFAULT_MONITOR["stableSecondsThreshold"],
+                monitor_defaults["stableSecondsThreshold"],
             ),
             "differenceThreshold": _input_float(
                 "differenceThreshold (pixel change sensitivity; lower = stricter)",
-                DEFAULT_MONITOR["differenceThreshold"],
+                monitor_defaults["differenceThreshold"],
             ),
         }
 

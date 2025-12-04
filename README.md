@@ -16,24 +16,49 @@ rm -rf /tmp/task-detector-setup
 
 ## Quick usage
 
-### ai-select
+### Select region + start watching
 
 ```bash
-ai-select
+task-watch --select-region
+# or: task-watch --select
+# or: task-watch -r
 ```
 
-Select the AI window region and start monitoring immediately.
+This opens the region selector, saves the region as the default, and immediately starts monitoring.
 
-### ai-watch
+### Watch last selected region
 
 ```bash
-ai-watch
+task-watch
 ```
 
-Monitor the last selected region again.
+Reuse the last selected default region and start monitoring it again.
 
-- Or double-click `ai-select.command` / `ai-watch.command` on your Desktop.
-- To reconfigure notifications later, run `python main.py setup-config` from the `python/` folder.
+### Edit configuration (monitor + notifications)
+
+```bash
+task-watch --config
+```
+
+Reruns the guided configuration wizard so you can change:
+
+- Monitor thresholds (interval, stableSecondsThreshold, differenceThreshold)
+- Notification channels (Telegram, email, macOS) and their credentials
+
+### Update to latest version (git clone only)
+
+```bash
+task-watch --update
+```
+
+Runs a `git pull --ff-only` in the installation directory (when it is a git clone) and exits.
+
+Legacy aliases still work and forward to `task-watch`:
+
+- `ai-select` behaves like `task-watch --select-region`
+- `ai-watch` behaves like `task-watch`
+
+- Or double-click `task-watch.command`, `ai-select.command` or `ai-watch.command` on your Desktop.
 
 ## More docs
 
