@@ -20,4 +20,6 @@ else
 fi
 
 # Step 2: Ensure installer is executable and run it with sudo for symlink creation
+echo "🔐 The installer will now run with sudo to create the global 'task-watch' command in /usr/local/bin."
+echo "   Please enter your macOS password when prompted."
 sudo bash install.sh
