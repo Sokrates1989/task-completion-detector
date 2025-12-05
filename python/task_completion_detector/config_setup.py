@@ -71,10 +71,16 @@ def _build_config_interactive(existing: Dict[str, Any]) -> Dict[str, Any]:
     print("\nNotification channels:")
     enable_telegram = _yes_no("Enable Telegram notifications?", default=False)
     enable_email = _yes_no("Enable email notifications?", default=False)
-    enable_macos = _yes_no(
-        "Enable macOS local notifications?",
-        default=(platform.system() == "Darwin"),
-    )
+    
+    # Platform-appropriate local notifications
+    current_os = platform.system()
+    if current_os == "Darwin":
+        local_prompt = "Enable macOS local notifications?"
+    elif current_os == "Windows":
+        local_prompt = "Enable Windows local notifications?"
+    else:
+        local_prompt = "Enable local notifications?"
+    enable_local = _yes_no(local_prompt, default=(current_os in ("Darwin", "Windows")))
 
     telegram = existing.get("telegram", {}) if enable_telegram else {}
     email = existing.get("email", {}) if enable_email else {}
@@ -130,7 +136,7 @@ def _build_config_interactive(existing: Dict[str, Any]) -> Dict[str, Any]:
     notifications = {
         "useTelegram": bool(enable_telegram),
         "useEmail": bool(enable_email),
-        "useMacOS": bool(enable_macos),
+        "useLocalNotifications": bool(enable_local),
     }
 
     # Preserve any existing regions
@@ -170,6 +176,8 @@ def run_interactive() -> None:
         if choice.startswith("e"):
             if platform.system() == "Darwin":
                 os.system(f'open "{config_path}"')
+            elif platform.system() == "Windows":
+                os.system(f'notepad "{config_path}"')
             else:
                 print(f"Please edit the config manually at: {config_path}")
             return

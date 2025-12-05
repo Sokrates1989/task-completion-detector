@@ -1,3 +1,4 @@
+import platform
 import time
 from dataclasses import dataclass
 from typing import Optional, TYPE_CHECKING
@@ -5,7 +6,7 @@ from typing import Optional, TYPE_CHECKING
 from PIL import ImageChops, ImageGrab, ImageStat
 
 from .config_loader import ConfigLoader
-from .notifications import EmailNotifier, MacOSNotifier, TelegramNotifier
+from .notifications import EmailNotifier, MacOSNotifier, TelegramNotifier, WindowsNotifier
 
 if TYPE_CHECKING:
     # Only used for typing; avoid importing Tk-dependent code at runtime
@@ -38,11 +39,18 @@ class RegionMonitor:
         notify_cfg = cfg.get("notifications", {})
         self._use_telegram = bool(notify_cfg.get("useTelegram", True))
         self._use_email = bool(notify_cfg.get("useEmail", False))
-        self._use_macos = bool(notify_cfg.get("useMacOS", True))
+        self._use_local = bool(notify_cfg.get("useLocalNotifications", notify_cfg.get("useMacOS", True)))
 
         self._telegram = TelegramNotifier(self._config_loader) if self._use_telegram else None
         self._email = EmailNotifier(self._config_loader) if self._use_email else None
-        self._macos = MacOSNotifier() if self._use_macos else None
+        
+        # Use platform-appropriate local notifier
+        self._local_notifier = None
+        if self._use_local:
+            if platform.system() == "Darwin":
+                self._local_notifier = MacOSNotifier()
+            elif platform.system() == "Windows":
+                self._local_notifier = WindowsNotifier()
 
     def _capture_region(self):
         bbox = (
@@ -66,8 +74,8 @@ class RegionMonitor:
             self._telegram.send_message(message)
         if self._email and self._email.is_configured():
             self._email.send_simple_mail("Task completion detected", message)
-        if self._macos:
-            self._macos.send_notification(message)
+        if self._local_notifier:
+            self._local_notifier.send_notification(message)
 
     def monitor_until_stable(self) -> None:
         interval = self._settings.interval_seconds
@@ -101,7 +109,7 @@ class RegionMonitor:
                     )
                     self._send_notifications(stable_time)
 
-                    if self._use_macos:
+                    if self._use_local and platform.system() == "Darwin":
                         print(
                             "\nmacOS notification hint:"\
                             "\n- If you did not see the popup, open the Notification Center (top-right) and look for 'Task Completion Detector'."\
@@ -111,6 +119,12 @@ class RegionMonitor:
                             "\n  * Ton für Mitteilung wiedergeben: aktiviert"\
                             "\n  * Vorschauen zeigen: 'Immer'"\
                             "\n  * Mitteilungsgruppierung: 'Nach App'"
+                        )
+                    elif self._use_local and platform.system() == "Windows":
+                        print(
+                            "\nWindows notification hint:"\
+                            "\n- If you did not see the popup, check the Action Center (Win+A) for 'Task Completion Detector'."\
+                            "\n- For better notifications, install the BurntToast module: Install-Module -Name BurntToast -Scope CurrentUser"
                         )
                     break
 

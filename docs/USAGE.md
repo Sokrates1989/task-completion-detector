@@ -11,7 +11,7 @@ Notifications can be sent via:
 
 - Telegram
 - Email
-- Local macOS notifications (Notification Center)
+- Local notifications (macOS Notification Center or Windows Toast Notifications)
 
 ---
 
@@ -21,20 +21,29 @@ After installation you can use the `task-watch` launcher (recommended) or, for a
 
 ### task-watch (recommended)
 
-**From Terminal:**
+**macOS - From Terminal:**
 
 - `task-watch --select-region`  – select a screen region and immediately start monitoring it.
   - Short aliases: `task-watch --select` or `task-watch -r`.
 - `task-watch` – monitor the last selected default region again.
 - `task-watch --config` – rerun the guided configuration wizard / config editor.
- - `task-watch --update` – update the local git clone of task-completion-detector (when installed from git) and exit.
+- `task-watch --update` – update the local git clone of task-completion-detector (when installed from git) and exit.
 
-**From Finder:**
+**Windows - From PowerShell:**
 
-- Double-click `task-watch.command` on your Desktop.
-- Backward-compatible shortcuts `ai-select.command` and `ai-watch.command` are also provided and forward to the same behaviors.
+- `.\task-watch.ps1 -SelectRegion`  – select a screen region and immediately start monitoring it.
+  - Short alias: `.\task-watch.ps1 -r`.
+- `.\task-watch.ps1` – monitor the last selected default region again.
+- `.\task-watch.ps1 -Config` – rerun the guided configuration wizard / config editor.
+- `.\task-watch.ps1 -Update` – update the local git clone of task-completion-detector (when installed from git) and exit.
 
-**Legacy aliases (still supported):**
+**Desktop shortcuts:**
+
+- **macOS:** Double-click `task-watch.command` on your Desktop.
+  - Backward-compatible shortcuts `ai-select.command` and `ai-watch.command` are also provided and forward to the same behaviors.
+- **Windows:** Double-click `task-watch.lnk` on your Desktop.
+
+**Legacy aliases (macOS only, still supported):**
 
 - `ai-select` behaves like `task-watch --select-region`.
 - `ai-watch` behaves like `task-watch`.
@@ -152,7 +161,7 @@ AI assistant has finished a task or is waiting for your input.
 
 ---
 
-## Email and macOS notifications (overview)
+## Email and local notifications (overview)
 
 - **Email:**
   - The config wizard asks for SMTP server, port, sender address and password, and receiver address.
@@ -162,5 +171,11 @@ AI assistant has finished a task or is waiting for your input.
   - If enabled, the tool uses `osascript display notification` to post messages to Notification Center.
   - If you do not see notifications, open System Settings → Notifications, find your terminal application,
     and allow alerts/banners for it.
+
+- **Windows notifications:**
+  - If enabled, the tool uses PowerShell to send Windows toast notifications.
+  - For enhanced notifications, install the BurntToast module: `Install-Module -Name BurntToast -Scope CurrentUser`
+  - If you do not see notifications, check that Focus Assist is not blocking them, and open Action Center (Win+A)
+    to see if notifications were delivered silently.
 
 For low-level configuration details and troubleshooting, see `docs/INSTALL.md`.
