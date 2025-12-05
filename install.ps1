@@ -87,14 +87,37 @@ try {
     Write-Host "[WARN] Could not create Desktop shortcut: $_" -ForegroundColor Yellow
 }
 
-# Step 4: Add to PATH (optional, user-level)
-$UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if ($UserPath -notlike "*$ScriptDir*") {
-    $AddToPath = Read-Host "Add task-completion-detector to your PATH? (y/N)"
-    if ($AddToPath -eq "y" -or $AddToPath -eq "Y") {
-        [Environment]::SetEnvironmentVariable("Path", "$UserPath;$ScriptDir", "User")
-        Write-Host "Added $ScriptDir to user PATH. Restart your terminal for changes to take effect." -ForegroundColor Green
+# Step 4: Add global 'task-watch' command to PowerShell profile
+$ProfileDir = Split-Path -Parent $PROFILE
+if (-not (Test-Path $ProfileDir)) {
+    New-Item -ItemType Directory -Path $ProfileDir -Force | Out-Null
+}
+
+$AliasLine = "Set-Alias task-watch `"$TaskWatchScript`""
+$ProfileExists = Test-Path $PROFILE
+$AliasExists = $false
+
+if ($ProfileExists) {
+    $ProfileContent = Get-Content $PROFILE -Raw -ErrorAction SilentlyContinue
+    if ($ProfileContent -match "task-watch") {
+        $AliasExists = $true
     }
+}
+
+if (-not $AliasExists) {
+    Write-Host ""
+    Write-Host "To use 'task-watch' command globally, we need to add an alias to your PowerShell profile." -ForegroundColor Cyan
+    $AddAlias = Read-Host "Add 'task-watch' command to PowerShell profile? (Y/n)"
+    if ($AddAlias -ne "n" -and $AddAlias -ne "N") {
+        # Add alias to profile
+        Add-Content -Path $PROFILE -Value ""
+        Add-Content -Path $PROFILE -Value "# Task Completion Detector"
+        Add-Content -Path $PROFILE -Value $AliasLine
+        Write-Host "Added 'task-watch' alias to PowerShell profile." -ForegroundColor Green
+        Write-Host "Restart your terminal or run: . `$PROFILE" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "'task-watch' alias already exists in PowerShell profile." -ForegroundColor Green
 }
 
 # Step 5: Run guided configuration
@@ -108,12 +131,11 @@ Write-Host ""
 Write-Host "===============================================================" -ForegroundColor Cyan
 Write-Host "[OK] Installation complete!" -ForegroundColor Green
 Write-Host ""
-Write-Host "Usage:" -ForegroundColor White
-Write-Host "  From PowerShell:" -ForegroundColor Gray
-Write-Host "    .\task-watch.ps1                 - Monitor last selected default region" -ForegroundColor Gray
-Write-Host "    .\task-watch.ps1 --select-region - Select region and start monitoring" -ForegroundColor Gray
-Write-Host "    .\task-watch.ps1 --config        - (Re)run guided configuration" -ForegroundColor Gray
-Write-Host "    .\task-watch.ps1 --update        - Update to latest version" -ForegroundColor Gray
+Write-Host "Usage (after restarting terminal):" -ForegroundColor White
+Write-Host "  task-watch           - Monitor last selected default region" -ForegroundColor Gray
+Write-Host "  task-watch -r        - Select region and start monitoring" -ForegroundColor Gray
+Write-Host "  task-watch -c        - (Re)run guided configuration" -ForegroundColor Gray
+Write-Host "  task-watch -u        - Update to latest version" -ForegroundColor Gray
 Write-Host ""
-Write-Host "  From Desktop: Double-click task-watch.lnk" -ForegroundColor Gray
+Write-Host "  Or double-click task-watch.lnk on your Desktop" -ForegroundColor Gray
 Write-Host "===============================================================" -ForegroundColor Cyan

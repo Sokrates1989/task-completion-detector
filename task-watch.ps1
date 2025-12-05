@@ -2,17 +2,20 @@
 # Similar to task-watch.sh
 
 param(
-    [Alias("r", "select")]
     [switch]$SelectRegion,
+    [switch]$select,
+    [switch]$r,
     
-    [Alias("c", "setup-config", "edit-config")]
     [switch]$Config,
+    [switch]$setup_config,
+    [switch]$edit_config,
+    [switch]$c,
     
-    [Alias("u")]
     [switch]$Update,
+    [switch]$u,
     
-    [Alias("h")]
-    [switch]$Help
+    [switch]$Help,
+    [switch]$h
 )
 
 $ErrorActionPreference = "Stop"
@@ -129,17 +132,17 @@ function Invoke-Update {
 }
 
 # Main logic
-if ($Help) {
+if ($Help -or $h) {
     Show-Usage
     exit 0
 }
 
-if ($Update) {
+if ($Update -or $u) {
     Invoke-Update
     exit 0
 }
 
-if ($SelectRegion) {
+if ($SelectRegion -or $select -or $r) {
     Initialize-PythonEnv
     python main.py select-region --name $DefaultRegionName
     if ($LASTEXITCODE -eq 0) {
@@ -149,7 +152,7 @@ if ($SelectRegion) {
     exit $LASTEXITCODE
 }
 
-if ($Config) {
+if ($Config -or $setup_config -or $edit_config -or $c) {
     Initialize-PythonEnv
     python main.py setup-config
     Pop-Location
