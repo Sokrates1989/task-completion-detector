@@ -11,18 +11,27 @@ Write-Host "[INFO] Installing task-completion-detector into $TargetDir" -Foregro
 # Step 1: Clone or update the repository
 if (-not (Test-Path "$TargetDir\.git")) {
     Write-Host "Cloning repository..." -ForegroundColor Yellow
-    if (-not (Test-Path $TargetDir)) {
-        New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
+    
+    # Remove existing directory if it exists but is not a git repo
+    if (Test-Path $TargetDir) {
+        Write-Host "Removing incomplete installation..." -ForegroundColor Yellow
+        Remove-Item -Recurse -Force $TargetDir -ErrorAction SilentlyContinue
     }
+    
+    New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
     Push-Location $TargetDir
     git clone $RepoUrl .
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ERROR] Failed to clone repository." -ForegroundColor Red
+        Pop-Location
+        exit 1
+    }
     Pop-Location
 } else {
     Write-Host "[INFO] task-completion-detector already cloned - attempting to update..." -ForegroundColor Yellow
     Push-Location $TargetDir
-    try {
-        git pull --ff-only
-    } catch {
+    git pull --ff-only
+    if ($LASTEXITCODE -ne 0) {
         Write-Host "[WARN] Could not fast-forward; continuing with existing clone." -ForegroundColor Yellow
     }
     Pop-Location
