@@ -71,8 +71,16 @@ function Initialize-PythonEnv {
         exit 1
     }
     
-    # Create venv if missing
+    # Create venv if missing or invalid
     $VenvPath = Join-Path (Get-Location) ".venv"
+    $ActivateScript = Join-Path $VenvPath "Scripts\Activate.ps1"
+    
+    # Check if venv exists and is valid (has Scripts folder on Windows)
+    if ((Test-Path $VenvPath) -and -not (Test-Path $ActivateScript)) {
+        Write-Host "Removing invalid virtual environment..." -ForegroundColor Yellow
+        Remove-Item -Recurse -Force $VenvPath
+    }
+    
     if (-not (Test-Path $VenvPath)) {
         Write-Host "Creating virtual environment..." -ForegroundColor Yellow
         if ($PythonBin -eq "py") {
@@ -80,10 +88,16 @@ function Initialize-PythonEnv {
         } else {
             & $PythonBin -m venv .venv
         }
+        
+        # Verify venv was created correctly
+        if (-not (Test-Path $ActivateScript)) {
+            Write-Host "[ERROR] Failed to create virtual environment." -ForegroundColor Red
+            Pop-Location
+            exit 1
+        }
     }
     
     # Activate venv
-    $ActivateScript = Join-Path $VenvPath "Scripts\Activate.ps1"
     . $ActivateScript
     
     # Install/update dependencies

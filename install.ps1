@@ -41,6 +41,14 @@ if (-not $PythonBin) {
 Push-Location $PythonDir
 
 $VenvPath = Join-Path $PythonDir ".venv"
+$ActivateScript = Join-Path $VenvPath "Scripts\Activate.ps1"
+
+# Check if venv exists and is valid (has Scripts folder on Windows)
+if ((Test-Path $VenvPath) -and -not (Test-Path $ActivateScript)) {
+    Write-Host "Removing invalid virtual environment..." -ForegroundColor Yellow
+    Remove-Item -Recurse -Force $VenvPath
+}
+
 if (-not (Test-Path $VenvPath)) {
     Write-Host "Creating virtual environment..." -ForegroundColor Yellow
     if ($PythonBin -eq "py -3") {
@@ -48,13 +56,19 @@ if (-not (Test-Path $VenvPath)) {
     } else {
         & $PythonBin -m venv .venv
     }
+    
+    # Verify venv was created correctly
+    if (-not (Test-Path $ActivateScript)) {
+        Write-Host "[ERROR] Failed to create virtual environment. Please check your Python installation." -ForegroundColor Red
+        Pop-Location
+        exit 1
+    }
 }
 
 # Activate venv and install dependencies
 Write-Host "Installing Python dependencies..." -ForegroundColor Yellow
-$ActivateScript = Join-Path $VenvPath "Scripts\Activate.ps1"
 . $ActivateScript
-pip install -r ..\requirements.txt
+pip install -q -r ..\requirements.txt
 
 # Step 3: Create Desktop shortcut
 $DesktopPath = [Environment]::GetFolderPath("Desktop")
