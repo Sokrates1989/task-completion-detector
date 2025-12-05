@@ -29,13 +29,12 @@ After installation you can use the `task-watch` launcher (recommended) or, for a
 - `task-watch --config` – rerun the guided configuration wizard / config editor.
 - `task-watch --update` – update the local git clone of task-completion-detector (when installed from git) and exit.
 
-**Windows - From PowerShell:**
+**Windows - From PowerShell (after restarting terminal):**
 
-- `.\task-watch.ps1 -SelectRegion`  – select a screen region and immediately start monitoring it.
-  - Short alias: `.\task-watch.ps1 -r`.
-- `.\task-watch.ps1` – monitor the last selected default region again.
-- `.\task-watch.ps1 -Config` – rerun the guided configuration wizard / config editor.
-- `.\task-watch.ps1 -Update` – update the local git clone of task-completion-detector (when installed from git) and exit.
+- `task-watch -r`  – select a screen region and immediately start monitoring it.
+- `task-watch` – monitor the last selected default region again.
+- `task-watch -c` – rerun the guided configuration wizard / config editor.
+- `task-watch -u` – update the local git clone of task-completion-detector (when installed from git) and exit.
 
 **Desktop shortcuts:**
 

@@ -43,10 +43,10 @@ task-watch --select-region
 # or: task-watch -r
 ```
 
-**Windows (PowerShell):**
+**Windows (PowerShell, after install):**
 ```powershell
-.\task-watch.ps1 -SelectRegion
-# or: .\task-watch.ps1 -r
+task-watch -r
+# or: task-watch -SelectRegion
 ```
 
 This opens the region selector, saves the region as the default, and immediately starts monitoring.
@@ -58,9 +58,9 @@ This opens the region selector, saves the region as the default, and immediately
 task-watch
 ```
 
-**Windows (PowerShell):**
+**Windows (PowerShell, after install):**
 ```powershell
-.\task-watch.ps1
+task-watch
 ```
 
 Reuse the last selected default region and start monitoring it again.
@@ -72,9 +72,10 @@ Reuse the last selected default region and start monitoring it again.
 task-watch --config
 ```
 
-**Windows (PowerShell):**
+**Windows (PowerShell, after install):**
 ```powershell
-.\task-watch.ps1 -Config
+task-watch -c
+# or: task-watch -Config
 ```
 
 Reruns the guided configuration wizard so you can change:
@@ -89,9 +90,10 @@ Reruns the guided configuration wizard so you can change:
 task-watch --update
 ```
 
-**Windows (PowerShell):**
+**Windows (PowerShell, after install):**
 ```powershell
-.\task-watch.ps1 -Update
+task-watch -u
+# or: task-watch -Update
 ```
 
 Runs a `git pull --ff-only` in the installation directory (when it is a git clone) and exits.

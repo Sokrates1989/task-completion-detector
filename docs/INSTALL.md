@@ -75,10 +75,11 @@ What this does:
 
 After this finishes you should be able to:
 
-- From PowerShell: navigate to the install directory and run:
-  - `.\task-watch.ps1 -SelectRegion` to select a region and start monitoring immediately.
-  - `.\task-watch.ps1` to reuse the last selected default region.
-  - `.\task-watch.ps1 -Config` to rerun the guided configuration / config editor.
+- From PowerShell (after restarting terminal):
+  - `task-watch -r` to select a region and start monitoring immediately.
+  - `task-watch` to reuse the last selected default region.
+  - `task-watch -c` to rerun the guided configuration / config editor.
+  - `task-watch -u` to update to the latest version.
 - From Desktop: double-click `task-watch.lnk`.
 
 > For enhanced Windows toast notifications, optionally install BurntToast:
