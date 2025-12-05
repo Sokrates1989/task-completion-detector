@@ -66,7 +66,7 @@ function Initialize-PythonEnv {
     }
     
     if (-not $PythonBin) {
-        Write-Host "❌ Python 3 not found. Please install Python 3.9+ and ensure it's in your PATH." -ForegroundColor Red
+        Write-Host "[ERROR] Python 3 not found. Please install Python 3.9+ and ensure it is in your PATH." -ForegroundColor Red
         Pop-Location
         exit 1
     }

@@ -7,7 +7,7 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $PythonDir = Join-Path $ScriptDir "python"
 $TaskWatchScript = Join-Path $ScriptDir "task-watch.ps1"
 
-Write-Host "📦 Installing task-completion-detector..." -ForegroundColor Cyan
+Write-Host "[INFO] Installing task-completion-detector..." -ForegroundColor Cyan
 
 # Create launchers directory
 $LauncherDir = Join-Path $ScriptDir "launchers"
@@ -33,7 +33,7 @@ foreach ($candidate in $PythonCandidates) {
 }
 
 if (-not $PythonBin) {
-    Write-Host "❌ Python 3 not found. Please install Python 3.9+ and ensure it's in your PATH." -ForegroundColor Red
+    Write-Host "[ERROR] Python 3 not found. Please install Python 3.9+ and ensure it is in your PATH." -ForegroundColor Red
     exit 1
 }
 
@@ -70,7 +70,7 @@ try {
     $Shortcut.Save()
     Write-Host "Created Desktop shortcut: task-watch.lnk" -ForegroundColor Green
 } catch {
-    Write-Host "⚠️ Could not create Desktop shortcut: $_" -ForegroundColor Yellow
+    Write-Host "[WARN] Could not create Desktop shortcut: $_" -ForegroundColor Yellow
 }
 
 # Step 4: Add to PATH (optional, user-level)
@@ -91,15 +91,15 @@ python main.py setup-config
 Pop-Location
 
 Write-Host ""
-Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "✅ Installation complete!" -ForegroundColor Green
+Write-Host "===============================================================" -ForegroundColor Cyan
+Write-Host "[OK] Installation complete!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Usage:" -ForegroundColor White
 Write-Host "  From PowerShell:" -ForegroundColor Gray
-Write-Host "    .\task-watch.ps1                 → Monitor last selected default region" -ForegroundColor Gray
-Write-Host "    .\task-watch.ps1 --select-region → Select region and start monitoring" -ForegroundColor Gray
-Write-Host "    .\task-watch.ps1 --config        → (Re)run guided configuration" -ForegroundColor Gray
-Write-Host "    .\task-watch.ps1 --update        → Update to latest version" -ForegroundColor Gray
+Write-Host "    .\task-watch.ps1                 - Monitor last selected default region" -ForegroundColor Gray
+Write-Host "    .\task-watch.ps1 --select-region - Select region and start monitoring" -ForegroundColor Gray
+Write-Host "    .\task-watch.ps1 --config        - (Re)run guided configuration" -ForegroundColor Gray
+Write-Host "    .\task-watch.ps1 --update        - Update to latest version" -ForegroundColor Gray
 Write-Host ""
 Write-Host "  From Desktop: Double-click task-watch.lnk" -ForegroundColor Gray
-Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "===============================================================" -ForegroundColor Cyan

@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 $TargetDir = "$env:USERPROFILE\tools\task-completion-detector"
 $RepoUrl = "https://github.com/Sokrates1989/task-completion-detector.git"
 
-Write-Host "➡️ Installing task-completion-detector into $TargetDir" -ForegroundColor Cyan
+Write-Host "[INFO] Installing task-completion-detector into $TargetDir" -ForegroundColor Cyan
 
 # Step 1: Clone or update the repository
 if (-not (Test-Path "$TargetDir\.git")) {
@@ -18,21 +18,21 @@ if (-not (Test-Path "$TargetDir\.git")) {
     git clone $RepoUrl .
     Pop-Location
 } else {
-    Write-Host "ℹ️ task-completion-detector already cloned – attempting to update..." -ForegroundColor Yellow
+    Write-Host "[INFO] task-completion-detector already cloned - attempting to update..." -ForegroundColor Yellow
     Push-Location $TargetDir
     try {
         git pull --ff-only
     } catch {
-        Write-Host "⚠️ Could not fast-forward; continuing with existing clone." -ForegroundColor Yellow
+        Write-Host "[WARN] Could not fast-forward; continuing with existing clone." -ForegroundColor Yellow
     }
     Pop-Location
 }
 
 # Step 2: Run the installer
-Write-Host "🔧 Running installer..." -ForegroundColor Cyan
+Write-Host "[INFO] Running installer..." -ForegroundColor Cyan
 Push-Location $TargetDir
 & .\install.ps1
 Pop-Location
 
 Write-Host ""
-Write-Host "✅ Installation complete!" -ForegroundColor Green
+Write-Host "[OK] Installation complete!" -ForegroundColor Green
