@@ -4,6 +4,10 @@
     "stableSecondsThreshold": 40.0,
     "differenceThreshold": 1.0
   },
+  "monitorChange": {
+    "intervalSeconds": 1.0,
+    "differenceThreshold": 1.0
+  },
   "telegram": {
     "botToken": "BOT:TOKEN",
     "chatID": "YOUR_CHAT_ID"

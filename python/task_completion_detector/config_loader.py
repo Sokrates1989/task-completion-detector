@@ -26,7 +26,38 @@ class ConfigLoader:
                 )
             with open(self._config_path, "r", encoding="utf-8") as f:
                 self._config = json.load(f)
+            self._migrate_if_needed()
         return self._config
+
+    def _migrate_if_needed(self) -> None:
+        """Migrate older configs to include newer sections/fields.
+
+        Currently ensures a separate monitorChange section exists so that
+        change-watch can have its own thresholds, while remaining
+        backward compatible with existing configs that only have monitor.
+        """
+
+        if self._config is None:
+            return
+
+        cfg = self._config
+        changed = False
+
+        # If monitorChange is missing but monitor exists, seed it from monitor.
+        # Note: change-watch does not use a stability duration, so we only
+        # carry over intervalSeconds and differenceThreshold.
+        if "monitor" in cfg and "monitorChange" not in cfg:
+            monitor = cfg.get("monitor", {})
+            cfg["monitorChange"] = {
+                "intervalSeconds": monitor.get("intervalSeconds", 1.0),
+                "differenceThreshold": monitor.get("differenceThreshold", 2.0),
+            }
+            changed = True
+
+        if changed:
+            self._config = cfg
+            with open(self._config_path, "w", encoding="utf-8") as f:
+                json.dump(cfg, f, indent=2)
 
     def get(self, key: str, default: Optional[Any] = None) -> Any:
         cfg = self.load()

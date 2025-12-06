@@ -150,9 +150,10 @@ function Test-UpdateAvailable {
     Push-Location $ProjectRoot
     try {
         git remote update | Out-Null
-        $local  = git rev-parse @
-        $remote = git rev-parse @{u}
-        $base   = git merge-base @ @{u}
+        # Use explicit refs to avoid PowerShell interpreting '@' and '@{u}'
+        $local  = git rev-parse HEAD
+        $remote = git rev-parse '@{u}'
+        $base   = git merge-base HEAD '@{u}'
     } catch {
         Pop-Location
         return

@@ -6,12 +6,28 @@ from task_completion_detector.config_loader import ConfigLoader
 from task_completion_detector.monitor import MonitorSettings, RegionMonitor
 
 
-def _load_monitor_settings(cfg: Dict[str, Any]) -> MonitorSettings:
-    monitor_cfg = cfg.get("monitor", {})
+def _load_monitor_settings(cfg: Dict[str, Any], mode: str = "stable") -> MonitorSettings:
+    """Load monitor settings, supporting separate configs for stable vs change modes.
+
+    - For stability mode (task-watch), values are read from the legacy "monitor" section.
+    - For change mode (change-watch), values are read from "monitorChange" when present,
+      falling back to "monitor" for backward compatibility.
+    """
+
+    if mode == "change":
+        monitor_cfg = cfg.get("monitorChange") or cfg.get("monitor", {})
+    else:
+        monitor_cfg = cfg.get("monitor", {})
+
     interval = float(monitor_cfg.get("intervalSeconds", 1.0))
     stable_seconds = float(monitor_cfg.get("stableSecondsThreshold", 30.0))
     diff_threshold = float(monitor_cfg.get("differenceThreshold", 2.0))
-    return MonitorSettings(interval_seconds=interval, stable_seconds_threshold=stable_seconds, difference_threshold=diff_threshold)
+
+    return MonitorSettings(
+        interval_seconds=interval,
+        stable_seconds_threshold=stable_seconds,
+        difference_threshold=diff_threshold,
+    )
 
 
 def cmd_select_region(args: argparse.Namespace) -> None:
@@ -62,12 +78,15 @@ def cmd_monitor(args: argparse.Namespace) -> None:
         height=int(region_cfg["height"]),
     )
 
-    settings = _load_monitor_settings(cfg)
+    # Choose monitoring settings based on --change flag
+    is_change = getattr(args, "change", False)
+    mode = "change" if is_change else "stable"
+    settings = _load_monitor_settings(cfg, mode=mode)
 
     monitor = RegionMonitor(args.name, region, settings, config_loader)
 
     # Choose monitoring mode based on --change flag
-    if getattr(args, "change", False):
+    if is_change:
         monitor.monitor_until_change()
     else:
         monitor.monitor_until_stable()
