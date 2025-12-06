@@ -50,7 +50,8 @@ class ConfigLoader:
             monitor = cfg.get("monitor", {})
             cfg["monitorChange"] = {
                 "intervalSeconds": monitor.get("intervalSeconds", 1.0),
-                "differenceThreshold": monitor.get("differenceThreshold", 2.0),
+                # Default change-watch sensitivity is more relaxed (10.0)
+                "differenceThreshold": 10.0,
             }
             changed = True
 

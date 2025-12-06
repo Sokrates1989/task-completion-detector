@@ -10,6 +10,12 @@ DEFAULT_MONITOR = {
     "differenceThreshold": 1.0,
 }
 
+DEFAULT_MONITOR_CHANGE = {
+    "intervalSeconds": 1.0,
+    # No stability duration for change-watch – we only care about sensitivity.
+    "differenceThreshold": 10.0,
+}
+
 
 def _yes_no(prompt: str, default: bool) -> bool:
     suffix = "[Y/n]" if default else "[y/N]"
@@ -45,7 +51,7 @@ def _build_config_interactive(existing: Dict[str, Any]) -> Dict[str, Any]:
         "differenceThreshold": float(existing_monitor.get("differenceThreshold", DEFAULT_MONITOR["differenceThreshold"])),
     }
 
-    # Monitor settings
+    # Monitor settings (stability mode / task-watch)
     print("\nCurrent monitor settings (from existing config or defaults):")
     print(f"  intervalSeconds: {monitor_defaults['intervalSeconds']}")
     print(f"  stableSecondsThreshold: {monitor_defaults['stableSecondsThreshold']}")
@@ -64,6 +70,38 @@ def _build_config_interactive(existing: Dict[str, Any]) -> Dict[str, Any]:
             "differenceThreshold": _input_float(
                 "differenceThreshold (pixel change sensitivity; lower = stricter)",
                 monitor_defaults["differenceThreshold"],
+            ),
+        }
+
+    # Change-watch settings (change mode / change-watch)
+    existing_change = existing.get("monitorChange", {})
+    change_defaults = {
+        # Default to same interval as monitor unless user already customized monitorChange
+        "intervalSeconds": float(existing_change.get("intervalSeconds", monitor["intervalSeconds"])),
+        "differenceThreshold": float(
+            existing_change.get(
+                "differenceThreshold",
+                DEFAULT_MONITOR_CHANGE["differenceThreshold"],
+            )
+        ),
+    }
+
+    print("\nCurrent change-watch settings (for change-watch mode):")
+    print(f"  intervalSeconds: {change_defaults['intervalSeconds']}")
+    print(f"  differenceThreshold: {change_defaults['differenceThreshold']}")
+
+    use_change_defaults = _yes_no("Keep these change-watch settings?", default=True)
+    if use_change_defaults:
+        monitor_change = dict(change_defaults)
+    else:
+        monitor_change = {
+            "intervalSeconds": _input_float(
+                "intervalSeconds for change-watch (seconds between checks)",
+                change_defaults["intervalSeconds"],
+            ),
+            "differenceThreshold": _input_float(
+                "differenceThreshold for change-watch (pixel change sensitivity; higher = less sensitive)",
+                change_defaults["differenceThreshold"],
             ),
         }
 
@@ -144,6 +182,7 @@ def _build_config_interactive(existing: Dict[str, Any]) -> Dict[str, Any]:
 
     cfg: Dict[str, Any] = {
         "monitor": monitor,
+        "monitorChange": monitor_change,
         "telegram": telegram,
         "email": email,
         "notifications": notifications,
