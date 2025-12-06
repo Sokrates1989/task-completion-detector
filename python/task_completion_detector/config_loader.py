@@ -35,6 +35,10 @@ class ConfigLoader:
     def get_region(self, name: str) -> Dict[str, Any]:
         cfg = self.load()
         regions = cfg.get("regions", {})
+        # Backward compatibility: treat legacy 'windsurf_panel' as the default region name
+        if name not in regions and name == "default" and "windsurf_panel" in regions:
+            return regions["windsurf_panel"]
+
         if name not in regions:
             raise KeyError(f"Region '{name}' not found in config. Configure it via select-region first.")
         return regions[name]

@@ -23,16 +23,18 @@ After installation you can use the `task-watch` launcher (recommended) or, for a
 
 **macOS - From Terminal:**
 
-- `task-watch --select-region`  – select a screen region and immediately start monitoring it.
-  - Short aliases: `task-watch --select`, `task-watch -r`, or `task-watch -s`.
+- `task-watch --select-region [name]`  – select a screen region and immediately start monitoring it. If `name` is provided, the region is saved under both `name` and the default region name.
+  - Short aliases: `task-watch --select [name]`, `task-watch -r [name]`, or `task-watch -s [name]`.
 - `task-watch` – monitor the last selected default region again.
+- `task-watch [name]` – monitor a previously selected named region.
 - `task-watch --config` – rerun the guided configuration wizard / config editor.
 - `task-watch --update` – update the local git clone of task-completion-detector (when installed from git) and exit.
 
 **Windows - From PowerShell (after restarting terminal):**
 
-- `task-watch -r` or `task-watch -s`  – select a screen region and immediately start monitoring it.
+- `task-watch -r [name]` or `task-watch -s [name]`  – select a screen region and immediately start monitoring it. If `name` is provided, the region is saved under both `name` and the default region name.
 - `task-watch` – monitor the last selected default region again.
+- `task-watch [name]` – monitor a previously selected named region.
 - `task-watch -c` – rerun the guided configuration wizard / config editor.
 - `task-watch -u` – update the local git clone of task-completion-detector (when installed from git) and exit.
 
@@ -56,8 +58,8 @@ cd /path/to/task-completion-detector/python
 python main.py setup-config
 
 # Low-level region control (normally you just use task-watch)
-python main.py select-region --name windsurf_panel
-python main.py monitor --name windsurf_panel
+python main.py select-region --name default
+python main.py monitor --name default
 ```
 
 ---

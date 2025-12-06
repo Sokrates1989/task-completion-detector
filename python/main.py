@@ -28,6 +28,23 @@ def cmd_select_region(args: argparse.Namespace) -> None:
         f"Saved region '{args.name}': x={region.x}, y={region.y}, "
         f"width={region.width}, height={region.height}"
     )
+    # Optionally save the same region under additional names
+    for extra_name in getattr(args, "also_name", []) or []:
+        if extra_name == args.name:
+            continue
+        config_loader.save_region(
+            extra_name,
+            {
+                "x": region.x,
+                "y": region.y,
+                "width": region.width,
+                "height": region.height,
+            },
+        )
+        print(
+            f"Also saved region '{extra_name}': x={region.x}, y={region.y}, "
+            f"width={region.width}, height={region.height}"
+        )
 
 
 def cmd_monitor(args: argparse.Namespace) -> None:
@@ -63,6 +80,12 @@ def main() -> None:
 
     p_select = subparsers.add_parser("select-region", help="Select and save a screen region")
     p_select.add_argument("--name", required=True, help="Name of the region to save")
+    p_select.add_argument(
+        "--also-name",
+        action="append",
+        default=[],
+        help="Additional region names to save the same region under",
+    )
     p_select.set_defaults(func=cmd_select_region)
 
     p_monitor = subparsers.add_parser("monitor", help="Monitor a previously defined region")

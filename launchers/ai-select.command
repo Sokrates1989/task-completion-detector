@@ -18,4 +18,4 @@ source .venv/bin/activate
 pip install -r ../requirements.txt
 
 # Run region selection for default region name
-python main.py select-region --name windsurf_panel
+python main.py select-region --name default

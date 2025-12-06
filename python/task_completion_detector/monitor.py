@@ -85,8 +85,10 @@ class RegionMonitor:
         stable_time = 0.0
         last_image = None
 
+        label = "default region" if self._name in ("default", "windsurf_panel") else f"region '{self._name}'"
         print(
-            f"Monitoring selected region at interval {interval}s, "
+            f"Monitoring {label} (x={self._region.x}, y={self._region.y}, "
+            f"width={self._region.width}, height={self._region.height}) at interval {interval}s, "
             f"declaring stable after {threshold_seconds}s with diff threshold {diff_threshold}..."
         )
 

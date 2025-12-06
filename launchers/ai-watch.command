@@ -18,4 +18,4 @@ source .venv/bin/activate
 pip install -r ../requirements.txt
 
 # Monitor default region name
-python main.py monitor --name windsurf_panel
+python main.py monitor --name default

@@ -7,8 +7,9 @@ SCRIPT_PATH="${0:A}"
 SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_PATH}")" && pwd)"
 PROJECT_ROOT="${SCRIPT_DIR}"
 
-DEFAULT_REGION_NAME="windsurf_panel"
+DEFAULT_REGION_NAME="default"
 MODE="watch"
+REGION_NAME=""
 
 # Backwards-compatible behaviour based on invoked name
 if [[ "${INVOKED_NAME}" == "ai-select" ]]; then
@@ -17,9 +18,10 @@ fi
 
 usage() {
   cat <<EOF
-Usage: task-watch [OPTION]
+Usage: task-watch [OPTION] [REGION_NAME]
 
   (no option)            Monitor the last selected default region (${DEFAULT_REGION_NAME}).
+  REGION_NAME            Monitor the named region.
   --select-region
   --select
   -r
@@ -101,10 +103,15 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "Unknown option: $1" >&2
-      echo
-      usage
-      exit 1
+      if [[ -z "${REGION_NAME}" ]]; then
+        REGION_NAME="$1"
+        shift
+      else
+        echo "Unexpected argument: $1" >&2
+        echo
+        usage
+        exit 1
+      fi
       ;;
   esac
 done
@@ -116,8 +123,13 @@ case "${MODE}" in
 
   select)
     bootstrap_python_env
-    python main.py select-region --name "${DEFAULT_REGION_NAME}" && \
-      python main.py monitor --name "${DEFAULT_REGION_NAME}"
+    if [[ -n "${REGION_NAME}" ]]; then
+      python main.py select-region --name "${REGION_NAME}" --also-name "${DEFAULT_REGION_NAME}" && \
+        python main.py monitor --name "${REGION_NAME}"
+    else
+      python main.py select-region --name "${DEFAULT_REGION_NAME}" && \
+        python main.py monitor --name "${DEFAULT_REGION_NAME}"
+    fi
     ;;
 
   config)
@@ -127,7 +139,11 @@ case "${MODE}" in
 
   watch)
     bootstrap_python_env
-    python main.py monitor --name "${DEFAULT_REGION_NAME}"
+    if [[ -n "${REGION_NAME}" ]]; then
+      python main.py monitor --name "${REGION_NAME}"
+    else
+      python main.py monitor --name "${DEFAULT_REGION_NAME}"
+    fi
     ;;
 
   *)

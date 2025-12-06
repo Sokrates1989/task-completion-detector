@@ -34,69 +34,25 @@ Remove-Item -Recurse -Force $TempDir
 
 ## 📖 Quick usage
 
-### Select region + start watching
+For all commands and detailed behavior, see `docs/USAGE.md`.
 
-**macOS:**
+### macOS (Terminal)
+
 ```bash
-task-watch --select-region
-# or: task-watch --select
-# or: task-watch -r
+task-watch --select-region [name]   # select & watch region (aliases: --select, -r, -s; also saves under default name)
+task-watch [name]                   # watch named region (or default when omitted)
+task-watch --config                 # open config wizard (monitor thresholds, notifications)
+task-watch --update                 # update to latest version (git clone only)
 ```
 
-**Windows (PowerShell, after install):**
+### Windows (PowerShell, after install)
+
 ```powershell
-task-watch -r
-# or: task-watch -SelectRegion
+task-watch -r [name]                # select & watch region (also -s, -SelectRegion; also saves under default name)
+task-watch [name]                   # watch named region (or default when omitted)
+task-watch -c                       # open config wizard (also -Config)
+task-watch -u                       # update to latest version (also -Update; git clone only)
 ```
-
-This opens the region selector, saves the region as the default, and immediately starts monitoring.
-
-### Watch last selected region
-
-**macOS:**
-```bash
-task-watch
-```
-
-**Windows (PowerShell, after install):**
-```powershell
-task-watch
-```
-
-Reuse the last selected default region and start monitoring it again.
-
-### Edit configuration (monitor + notifications)
-
-**macOS:**
-```bash
-task-watch --config
-```
-
-**Windows (PowerShell, after install):**
-```powershell
-task-watch -c
-# or: task-watch -Config
-```
-
-Reruns the guided configuration wizard so you can change:
-
-- Monitor thresholds (interval, stableSecondsThreshold, differenceThreshold)
-- Notification channels (Telegram, email, local notifications) and their credentials
-
-### Update to latest version (git clone only)
-
-**macOS:**
-```bash
-task-watch --update
-```
-
-**Windows (PowerShell, after install):**
-```powershell
-task-watch -u
-# or: task-watch -Update
-```
-
-Runs a `git pull --ff-only` in the installation directory (when it is a git clone) and exits.
 
 ### Desktop shortcuts
 

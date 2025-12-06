@@ -16,21 +16,24 @@ param(
     [switch]$u,
     
     [switch]$Help,
-    [switch]$h
+    [switch]$h,
+    
+    [string]$RegionName
 )
 
 $ErrorActionPreference = "Stop"
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = $ScriptDir
-$DefaultRegionName = "windsurf_panel"
+$DefaultRegionName = "default"
 
 function Show-Usage {
     Write-Host @"
-Usage: task-watch.ps1 [OPTION]
+Usage: task-watch.ps1 [OPTION] [RegionName]
 
   (no option)            Monitor the last selected default region ($DefaultRegionName).
-  -SelectRegion, -r, -s  Select a region and then start monitoring it.
+  RegionName             Monitor the named region.
+  -SelectRegion, -r, -s  Select a region and then start monitoring it (optionally naming it).
   -Config, -c            Run the guided configuration / config editor.
   -Update, -u            Update the task-completion-detector git clone (if available) and exit.
   -Help, -h              Show this help.
@@ -145,9 +148,14 @@ if ($Update -or $u) {
 
 if ($SelectRegion -or $select -or $r -or $s) {
     Initialize-PythonEnv
-    python main.py select-region --name $DefaultRegionName
+    $targetName = if ($RegionName) { $RegionName } else { $DefaultRegionName }
+    if ($RegionName) {
+        python main.py select-region --name $targetName --also-name $DefaultRegionName
+    } else {
+        python main.py select-region --name $DefaultRegionName
+    }
     if ($LASTEXITCODE -eq 0) {
-        python main.py monitor --name $DefaultRegionName
+        python main.py monitor --name $targetName
     }
     Pop-Location
     exit $LASTEXITCODE
@@ -162,6 +170,7 @@ if ($Config -or $setup_config -or $edit_config -or $c) {
 
 # Default: watch mode
 Initialize-PythonEnv
-python main.py monitor --name $DefaultRegionName
+$targetName = if ($RegionName) { $RegionName } else { $DefaultRegionName }
+python main.py monitor --name $targetName
 Pop-Location
 exit $LASTEXITCODE
