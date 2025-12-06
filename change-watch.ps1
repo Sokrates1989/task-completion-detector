@@ -1,5 +1,5 @@
 # Wrapper script for change-watch mode on Windows
-# This script invokes task-watch.ps1 with the -Change flag
+# This script directly calls the Python CLI to avoid argument forwarding issues
 
 param(
     [switch]$SelectRegion,
@@ -16,15 +16,94 @@ param(
     [string]$RegionName
 )
 
+$ErrorActionPreference = "Stop"
+
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$TaskWatchScript = Join-Path $ScriptDir "task-watch.ps1"
+$ProjectRoot = $ScriptDir
 
-# Build arguments to forward
-$ForwardArgs = @("-Change")
+function Initialize-PythonEnv {
+    Push-Location (Join-Path $ProjectRoot "python")
+    
+    # Find Python
+    $PythonBin = $null
+    $PythonCandidates = @("python", "python3")
+    
+    foreach ($candidate in $PythonCandidates) {
+        try {
+            $version = & $candidate --version 2>&1
+            if ($version -match "Python 3") {
+                $PythonBin = $candidate
+                break
+            }
+        } catch {
+            continue
+        }
+    }
+    
+    if (-not $PythonBin) {
+        # Try py launcher
+        try {
+            $version = & py -3 --version 2>&1
+            if ($version -match "Python 3") {
+                $PythonBin = "py"
+            }
+        } catch {}
+    }
+    
+    if (-not $PythonBin) {
+        Write-Host "[ERROR] Python 3 not found. Please install Python 3.9+ and ensure it is in your PATH." -ForegroundColor Red
+        Pop-Location
+        exit 1
+    }
+    
+    # Create venv if missing or invalid
+    $VenvPath = Join-Path (Get-Location) ".venv"
+    $ActivateScript = Join-Path $VenvPath "Scripts\Activate.ps1"
+    
+    # Check if venv exists and is valid (has Scripts folder on Windows)
+    if ((Test-Path $VenvPath) -and -not (Test-Path $ActivateScript)) {
+        Write-Host "Removing invalid virtual environment..." -ForegroundColor Yellow
+        Remove-Item -Recurse -Force $VenvPath
+    }
+    
+    if (-not (Test-Path $VenvPath)) {
+        Write-Host "Creating virtual environment..." -ForegroundColor Yellow
+        if ($PythonBin -eq "py") {
+            & py -3 -m venv .venv
+        } else {
+            & $PythonBin -m venv .venv
+        }
+        
+        # Verify venv was created correctly
+        if (-not (Test-Path $ActivateScript)) {
+            Write-Host "[ERROR] Failed to create virtual environment." -ForegroundColor Red
+            Pop-Location
+            exit 1
+        }
+    }
+    
+    # Activate venv
+    . $ActivateScript
+    
+    # Install/update dependencies
+    pip install -q -r ..\requirements.txt
+}
 
-if ($SelectRegion -or $select -or $r -or $s) { $ForwardArgs += "-r" }
-if ($Update -or $u) { $ForwardArgs += "-u" }
-if ($Help -or $h) { $ForwardArgs += "-h" }
-if ($RegionName) { $ForwardArgs += "-RegionName"; $ForwardArgs += $RegionName }
+# Main execution
+Initialize-PythonEnv
 
-& $TaskWatchScript @ForwardArgs
+$regionName = if ($RegionName) { $RegionName } else { "default" }
+
+if ($SelectRegion -or $select -or $r -or $s) {
+    # Select region first
+    python main.py select-region --name $regionName
+    if ($LASTEXITCODE -ne 0) {
+        Pop-Location
+        exit $LASTEXITCODE
+    }
+}
+
+# Then monitor for changes
+python main.py monitor --name $regionName --change
+
+Pop-Location
