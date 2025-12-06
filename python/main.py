@@ -65,7 +65,12 @@ def cmd_monitor(args: argparse.Namespace) -> None:
     settings = _load_monitor_settings(cfg)
 
     monitor = RegionMonitor(args.name, region, settings, config_loader)
-    monitor.monitor_until_stable()
+
+    # Choose monitoring mode based on --change flag
+    if getattr(args, "change", False):
+        monitor.monitor_until_change()
+    else:
+        monitor.monitor_until_stable()
 
 
 def cmd_setup_config(_args: argparse.Namespace) -> None:
@@ -90,6 +95,11 @@ def main() -> None:
 
     p_monitor = subparsers.add_parser("monitor", help="Monitor a previously defined region")
     p_monitor.add_argument("--name", required=True, help="Name of the region to monitor")
+    p_monitor.add_argument(
+        "--change",
+        action="store_true",
+        help="Watch for changes instead of stability (notify immediately when region changes)",
+    )
     p_monitor.set_defaults(func=cmd_monitor)
 
     p_setup = subparsers.add_parser("setup-config", help="Guided setup for configuration file")

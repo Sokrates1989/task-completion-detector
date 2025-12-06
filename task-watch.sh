@@ -10,10 +10,13 @@ PROJECT_ROOT="${SCRIPT_DIR}"
 DEFAULT_REGION_NAME="default"
 MODE="watch"
 REGION_NAME=""
+CHANGE_MODE=false
 
 # Backwards-compatible behaviour based on invoked name
 if [[ "${INVOKED_NAME}" == "ai-select" ]]; then
   MODE="select"
+elif [[ "${INVOKED_NAME}" == "change-watch" ]]; then
+  CHANGE_MODE=true
 fi
 
 usage() {
@@ -26,6 +29,9 @@ Usage: task-watch [OPTION] [REGION_NAME]
   --select
   -r
   -s                     Select a region and then start monitoring it.
+  --change
+  --watch-change
+  -w                     Advanced: watch for changes instead of stability (used by change-watch).
   --config
   --setup-config
   --edit-config
@@ -40,6 +46,7 @@ Notes:
 - Legacy aliases:
   - Running via the name "ai-select" behaves like: task-watch --select-region
   - Running via the name "ai-watch" behaves like: task-watch
+  - Running via the name "change-watch" behaves like: task-watch --change
 EOF
 }
 
@@ -90,6 +97,10 @@ while [[ $# -gt 0 ]]; do
       MODE="select"
       shift
       ;;
+    --change|--watch-change|-w)
+      CHANGE_MODE=true
+      shift
+      ;;
     --config|--setup-config|--edit-config|-c)
       MODE="config"
       shift
@@ -123,12 +134,16 @@ case "${MODE}" in
 
   select)
     bootstrap_python_env
+    CHANGE_FLAG=""
+    if [[ "${CHANGE_MODE}" == true ]]; then
+      CHANGE_FLAG="--change"
+    fi
     if [[ -n "${REGION_NAME}" ]]; then
       python main.py select-region --name "${REGION_NAME}" --also-name "${DEFAULT_REGION_NAME}" && \
-        python main.py monitor --name "${REGION_NAME}"
+        python main.py monitor --name "${REGION_NAME}" ${CHANGE_FLAG}
     else
       python main.py select-region --name "${DEFAULT_REGION_NAME}" && \
-        python main.py monitor --name "${DEFAULT_REGION_NAME}"
+        python main.py monitor --name "${DEFAULT_REGION_NAME}" ${CHANGE_FLAG}
     fi
     ;;
 
@@ -139,10 +154,14 @@ case "${MODE}" in
 
   watch)
     bootstrap_python_env
+    CHANGE_FLAG=""
+    if [[ "${CHANGE_MODE}" == true ]]; then
+      CHANGE_FLAG="--change"
+    fi
     if [[ -n "${REGION_NAME}" ]]; then
-      python main.py monitor --name "${REGION_NAME}"
+      python main.py monitor --name "${REGION_NAME}" ${CHANGE_FLAG}
     else
-      python main.py monitor --name "${DEFAULT_REGION_NAME}"
+      python main.py monitor --name "${DEFAULT_REGION_NAME}" ${CHANGE_FLAG}
     fi
     ;;
 

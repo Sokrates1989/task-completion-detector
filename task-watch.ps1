@@ -7,6 +7,10 @@ param(
     [switch]$r,
     [switch]$s,
     
+    [switch]$Change,
+    [switch]$WatchChange,
+    [switch]$w,
+    
     [switch]$Config,
     [switch]$setup_config,
     [switch]$edit_config,
@@ -34,7 +38,9 @@ Usage: task-watch.ps1 [OPTION] [RegionName]
   (no option)            Monitor the last selected default region ($DefaultRegionName).
   RegionName             Monitor the named region.
   -SelectRegion, -r, -s  Select a region and then start monitoring it (optionally naming it).
-  -Config, -c            Run the guided configuration / config editor.
+  -Change, -w            Advanced: watch for changes instead of stability (used by change-watch).
+  -Config, -c, --setup-config, --edit-config
+                        Run the guided configuration / config editor.
   -Update, -u            Update the task-completion-detector git clone (if available) and exit.
   -Help, -h              Show this help.
 
@@ -149,19 +155,24 @@ if ($Update -or $u) {
 if ($SelectRegion -or $select -or $r -or $s) {
     Initialize-PythonEnv
     $targetName = if ($RegionName) { $RegionName } else { $DefaultRegionName }
+    $changeFlag = if ($Change -or $WatchChange -or $w) { "--change" } else { "" }
     if ($RegionName) {
         python main.py select-region --name $targetName --also-name $DefaultRegionName
     } else {
         python main.py select-region --name $DefaultRegionName
     }
     if ($LASTEXITCODE -eq 0) {
-        python main.py monitor --name $targetName
+        if ($changeFlag) {
+            python main.py monitor --name $targetName $changeFlag
+        } else {
+            python main.py monitor --name $targetName
+        }
     }
     Pop-Location
     exit $LASTEXITCODE
 }
 
-if ($Config -or $setup_config -or $edit_config -or $c) {
+if ($Config -or $setup_config -or $edit_config) {
     Initialize-PythonEnv
     python main.py setup-config
     Pop-Location
@@ -171,6 +182,11 @@ if ($Config -or $setup_config -or $edit_config -or $c) {
 # Default: watch mode
 Initialize-PythonEnv
 $targetName = if ($RegionName) { $RegionName } else { $DefaultRegionName }
-python main.py monitor --name $targetName
+$changeFlag = if ($Change -or $WatchChange -or $w) { "--change" } else { "" }
+if ($changeFlag) {
+    python main.py monitor --name $targetName $changeFlag
+} else {
+    python main.py monitor --name $targetName
+}
 Pop-Location
 exit $LASTEXITCODE

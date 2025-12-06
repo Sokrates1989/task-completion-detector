@@ -3,9 +3,15 @@
 ## What this tool does
 
 `task-completion-detector` watches a user-selected region of your screen (typically your AI assistant window).
-It periodically captures screenshots of that region and compares them. When the pixels stop changing for a
-configurable amount of time, it assumes the AI task has finished or your input is needed and sends you a
-notification.
+It periodically captures screenshots of that region and compares them.
+
+### Two monitoring modes
+
+1. **task-watch (stability mode)** – Notify when the region becomes **stable** (no activity for X seconds).
+   - Use case: Watch an AI assistant's output area; get notified when it stops typing.
+
+2. **change-watch (change mode)** – Notify **immediately** when the region **changes**.
+   - Use case: Watch a static indicator (e.g., a pause button, progress bar, or loading spinner) that changes when a long-running task completes.
 
 Notifications can be sent via:
 
@@ -19,7 +25,7 @@ Notifications can be sent via:
 
 After installation you can use the `task-watch` launcher (recommended) or, for advanced usage, the Python CLI.
 
-### task-watch (recommended)
+### task-watch – stability mode (recommended)
 
 **macOS - From Terminal:**
 
@@ -38,11 +44,32 @@ After installation you can use the `task-watch` launcher (recommended) or, for a
 - `task-watch -c` – rerun the guided configuration wizard / config editor.
 - `task-watch -u` – update the local git clone of task-completion-detector (when installed from git) and exit.
 
+### change-watch – change mode
+
+**macOS - From Terminal:**
+
+- `change-watch --select-region [name]`  – select a screen region and immediately start monitoring it for **changes**.
+  - Short aliases: `change-watch --select [name]`, `change-watch -r [name]`, or `change-watch -s [name]`.
+- `change-watch` – monitor the last selected default region for changes.
+- `change-watch [name]` – monitor a previously selected named region for changes.
+  - Advanced: `task-watch --change [name]` (or `-w [name]`) – same behavior.
+
+**Windows - From PowerShell (after restarting terminal):**
+
+- `change-watch -r [name]` or `change-watch -s [name]`  – select a screen region and immediately start monitoring it for **changes**.
+- `change-watch` – monitor the last selected default region for changes.
+- `change-watch [name]` – monitor a previously selected named region for changes.
+  - Advanced: `task-watch --change [name]` (or `-Change [name]` / `-w [name]`) – same behavior.
+
 **Desktop shortcuts:**
 
 - **macOS:** Double-click `task-watch.command` on your Desktop.
   - Backward-compatible shortcuts `ai-select.command` and `ai-watch.command` are also provided and forward to the same behaviors.
 - **Windows:** Double-click `task-watch.lnk` on your Desktop.
+
+**Aliases (both platforms):**
+
+- `change-watch` – watch for changes instead of stability (inverse of `task-watch`).
 
 **Legacy aliases (macOS only, still supported):**
 
@@ -60,6 +87,9 @@ python main.py setup-config
 # Low-level region control (normally you just use task-watch)
 python main.py select-region --name default
 python main.py monitor --name default
+
+# Monitor for changes instead of stability (change-watch mode)
+python main.py monitor --name default --change
 ```
 
 ---
@@ -89,6 +119,14 @@ python main.py monitor --name default
    - The monitor checks the region every `intervalSeconds` seconds.
    - When the visual difference stays below `differenceThreshold` for `stableSecondsThreshold` seconds,
      it treats the task as "completed / needs your attention" and sends notifications.
+
+**Alternative: Watch for changes instead of stability**
+
+If you have a static indicator (like a pause button or progress bar) that changes when a task completes,
+use `change-watch` instead of `task-watch`:
+
+- `change-watch` or `task-watch --change` – notifies **immediately** when the region changes.
+- Useful for long-running tasks where you want instant notification when a static indicator updates.
 
 You can tune these thresholds by:
 

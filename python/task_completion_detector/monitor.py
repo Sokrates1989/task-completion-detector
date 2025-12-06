@@ -68,12 +68,11 @@ class RegionMonitor:
         stat = ImageStat.Stat(diff)
         return float(stat.mean[0])  # 0..255
 
-    def _send_notifications(self, stable_seconds: float) -> None:
-        message = f"No more activity detected in the selected area for {stable_seconds:.0f} seconds."
+    def _send_notifications(self, message: str, subject: str = "Task completion detected") -> None:
         if self._telegram and self._telegram.is_configured():
             self._telegram.send_message(message)
         if self._email and self._email.is_configured():
-            self._email.send_simple_mail("Task completion detected", message)
+            self._email.send_simple_mail(subject, message)
         if self._local_notifier:
             self._local_notifier.send_notification(message)
 
@@ -109,7 +108,8 @@ class RegionMonitor:
                     print(
                         f"Selected region stable for {stable_time:.0f}s (score <= {diff_threshold}). Sending notifications."
                     )
-                    self._send_notifications(stable_time)
+                    message = f"No more activity detected in the selected area for {stable_time:.0f} seconds."
+                    self._send_notifications(message)
 
                     if self._use_local and platform.system() == "Darwin":
                         print(
@@ -132,3 +132,51 @@ class RegionMonitor:
 
             last_image = current
             time.sleep(interval)
+
+    def monitor_until_change(self) -> None:
+        """Monitor a region and notify immediately when a change is detected.
+
+        This is the inverse of monitor_until_stable: instead of waiting for the
+        region to become stable, we notify as soon as any change is detected.
+        Useful for watching static indicators (e.g., a pause button) that change
+        when a long-running task completes.
+        """
+        interval = self._settings.interval_seconds
+        diff_threshold = self._settings.difference_threshold
+
+        label = "default region" if self._name in ("default", "windsurf_panel") else f"region '{self._name}'"
+        print(
+            f"Watching {label} (x={self._region.x}, y={self._region.y}, "
+            f"width={self._region.width}, height={self._region.height}) for changes at interval {interval}s, "
+            f"notifying when diff > {diff_threshold}..."
+        )
+
+        # Capture initial reference image
+        reference_image = self._capture_region()
+        print("Reference image captured. Watching for changes...")
+
+        while True:
+            time.sleep(interval)
+            current = self._capture_region()
+
+            score = self._difference_score(reference_image, current)
+
+            if score > diff_threshold:
+                print(
+                    f"Change detected! (diff score: {score:.2f} > {diff_threshold}). Sending notifications."
+                )
+                message = f"Change detected in the monitored area! The watched region has changed."
+                self._send_notifications(message, subject="Change detected")
+
+                if self._use_local and platform.system() == "Darwin":
+                    print(
+                        "\nmacOS notification hint:"\
+                        "\n- If you did not see the popup, open the Notification Center (top-right) and look for 'Task Completion Detector'."
+                    )
+                elif self._use_local and platform.system() == "Windows":
+                    print(
+                        "\nWindows notification hint:"\
+                        "\n- If you did not see the popup, check the Action Center (Win+A) for 'Task Completion Detector'."\
+                        "\n- For better notifications, install the BurntToast module: Install-Module -Name BurntToast -Scope CurrentUser"
+                    )
+                break

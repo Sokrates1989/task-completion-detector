@@ -1,6 +1,10 @@
 # task-completion-detector
 Get notified when your AI coding assistant needs you. Never miss a task completion or required input again.
 
+**Two monitoring modes:**
+- **task-watch** – Notify when a region becomes **stable** (no activity for X seconds)
+- **change-watch** – Notify **immediately** when a region **changes** (useful for watching static indicators like pause buttons)
+
 ## 🚀 Quick Install
 
 ### macOS
@@ -36,7 +40,9 @@ Remove-Item -Recurse -Force $TempDir
 
 For all commands and detailed behavior, see `docs/USAGE.md`.
 
-### macOS (Terminal)
+### task-watch – stability mode
+
+**macOS (Terminal)**
 
 ```bash
 task-watch --select-region [name]   # select & watch region (aliases: --select, -r, -s; also saves under default name)
@@ -45,7 +51,7 @@ task-watch --config                 # open config wizard (monitor thresholds, no
 task-watch --update                 # update to latest version (git clone only)
 ```
 
-### Windows (PowerShell, after install)
+**Windows (PowerShell, after install)**
 
 ```powershell
 task-watch -r [name]                # select & watch region (also -s, -SelectRegion; also saves under default name)
@@ -54,14 +60,31 @@ task-watch -c                       # open config wizard (also -Config)
 task-watch -u                       # update to latest version (also -Update; git clone only)
 ```
 
+### change-watch – change mode
+
+**macOS (Terminal)**
+
+```bash
+change-watch --select-region [name] # select & watch region for changes (aliases: --select, -r, -s)
+change-watch [name]                 # watch named region for changes (or default when omitted)
+```
+
+**Windows (PowerShell, after install)**
+
+```powershell
+change-watch -r [name]              # select & watch region for changes (also -s, -SelectRegion)
+change-watch [name]                 # watch named region for changes (or default when omitted)
+```
+
 ### Desktop shortcuts
 
 - **macOS:** Double-click `task-watch.command` on your Desktop
 - **Windows:** Double-click `task-watch.lnk` on your Desktop
 
-**Legacy aliases (macOS only):**
-- `ai-select` behaves like `task-watch --select-region`
-- `ai-watch` behaves like `task-watch`
+**Aliases:**
+- `change-watch` – same as `task-watch --change` (watch for changes)
+- `ai-select` – same as `task-watch --select-region` (legacy, macOS)
+- `ai-watch` – same as `task-watch` (legacy, macOS)
 
 ## 📚 More docs
 
