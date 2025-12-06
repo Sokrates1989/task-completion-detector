@@ -89,7 +89,32 @@ function Initialize-PythonEnv {
     pip install -q -r ..\requirements.txt
 }
 
+function Test-UpdateAvailable {
+    $GitDir = Join-Path $ProjectRoot ".git"
+    if (-not (Test-Path $GitDir)) {
+        return
+    }
+
+    Push-Location $ProjectRoot
+    try {
+        git remote update | Out-Null
+        $local  = git rev-parse @
+        $remote = git rev-parse @{u}
+        $base   = git merge-base @ @{u}
+    } catch {
+        Pop-Location
+        return
+    }
+    Pop-Location
+
+    # Remote is ahead of local (fast-forward available): notify user once
+    if (($local -eq $base) -and ($remote -ne $local)) {
+        Write-Host "[Update available] A newer version is available. Run 'task-watch -u' to update." -ForegroundColor Yellow
+    }
+}
+
 # Main execution
+Test-UpdateAvailable
 Initialize-PythonEnv
 
 $regionName = if ($RegionName) { $RegionName } else { "default" }

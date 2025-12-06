@@ -90,6 +90,28 @@ run_update() {
   echo "Python environment refreshed. Update finished."
 }
 
+check_for_updates() {
+  # Only works for git clones; silently skip otherwise
+  if [ ! -d "${PROJECT_ROOT}/.git" ]; then
+    return
+  fi
+
+  cd "${PROJECT_ROOT}"
+
+  # Quietly update remote tracking information; ignore errors so we don't break the main flow
+  git remote update >/dev/null 2>&1 || return
+
+  local local_hash remote_hash base_hash
+  local_hash=$(git rev-parse @ 2>/dev/null) || return
+  remote_hash=$(git rev-parse @{u} 2>/dev/null) || return
+  base_hash=$(git merge-base @ @{u} 2>/dev/null) || return
+
+  # Remote is ahead of local (fast-forward available): notify user once
+  if [ "${local_hash}" = "${base_hash}" ] && [ "${remote_hash}" != "${local_hash}" ]; then
+    echo "[Update available] A newer version of task-completion-detector is available. Run 'task-watch --update' to update."
+  fi
+}
+
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -133,6 +155,7 @@ case "${MODE}" in
     ;;
 
   select)
+    check_for_updates
     bootstrap_python_env
     CHANGE_FLAG=""
     if [[ "${CHANGE_MODE}" == true ]]; then
@@ -153,6 +176,7 @@ case "${MODE}" in
     ;;
 
   watch)
+    check_for_updates
     bootstrap_python_env
     CHANGE_FLAG=""
     if [[ "${CHANGE_MODE}" == true ]]; then

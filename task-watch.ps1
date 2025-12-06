@@ -141,6 +141,30 @@ function Invoke-Update {
     Pop-Location
 }
 
+function Test-UpdateAvailable {
+    $GitDir = Join-Path $ProjectRoot ".git"
+    if (-not (Test-Path $GitDir)) {
+        return
+    }
+
+    Push-Location $ProjectRoot
+    try {
+        git remote update | Out-Null
+        $local  = git rev-parse @
+        $remote = git rev-parse @{u}
+        $base   = git merge-base @ @{u}
+    } catch {
+        Pop-Location
+        return
+    }
+    Pop-Location
+
+    # Remote is ahead of local (fast-forward available): notify user once
+    if (($local -eq $base) -and ($remote -ne $local)) {
+        Write-Host "[Update available] A newer version of task-completion-detector is available. Run 'task-watch -u' to update." -ForegroundColor Yellow
+    }
+}
+
 # Main logic
 if ($Help -or $h) {
     Show-Usage
@@ -151,6 +175,8 @@ if ($Update -or $u) {
     Invoke-Update
     exit 0
 }
+
+Test-UpdateAvailable
 
 if ($SelectRegion -or $select -or $r -or $s) {
     Initialize-PythonEnv
