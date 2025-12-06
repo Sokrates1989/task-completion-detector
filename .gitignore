@@ -1,3 +1,12 @@
 # Local config files (secrets, machine-specific)
 config/config.txt
 python/config/config.txt
+
+# Python virtual environments
+.venv/
+python/.venv/
+
+# Python bytecode caches
+__pycache__/
+**/__pycache__/
+*.py[cod]
