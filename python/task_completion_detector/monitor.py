@@ -3,7 +3,7 @@ import time
 from dataclasses import dataclass
 from typing import Optional, TYPE_CHECKING
 
-from PIL import ImageChops, ImageGrab, ImageStat
+from PIL import Image, ImageChops, ImageGrab, ImageStat
 
 from .config_loader import ConfigLoader
 from .notifications import EmailNotifier, MacOSNotifier, TelegramNotifier, WindowsNotifier
@@ -39,7 +39,12 @@ class RegionMonitor:
         notify_cfg = cfg.get("notifications", {})
         self._use_telegram = bool(notify_cfg.get("useTelegram", True))
         self._use_email = bool(notify_cfg.get("useEmail", False))
-        self._use_local = bool(notify_cfg.get("useLocalNotifications", notify_cfg.get("useMacOS", True)))
+        self._use_local = bool(
+            notify_cfg.get("useLocalNotifications", notify_cfg.get("useMacOS", True))
+        )
+        self._include_screenshot_telegram = bool(
+            notify_cfg.get("includeScreenshotInTelegram", False)
+        )
 
         self._telegram = TelegramNotifier(self._config_loader) if self._use_telegram else None
         self._email = EmailNotifier(self._config_loader) if self._use_email else None
@@ -68,9 +73,40 @@ class RegionMonitor:
         stat = ImageStat.Stat(diff)
         return float(stat.mean[0])  # 0..255
 
-    def _send_notifications(self, message: str, subject: str = "Task completion detected") -> None:
+    def _send_notifications(
+        self,
+        message: str,
+        subject: str = "Task completion detected",
+        image=None,
+        before_image=None,
+        after_image=None,
+    ) -> None:
         if self._telegram and self._telegram.is_configured():
-            self._telegram.send_message(message)
+            if getattr(self, "_include_screenshot_telegram", False):
+                send_image = image
+                caption = message
+
+                if before_image is not None or after_image is not None:
+                    if before_image is not None and after_image is not None:
+                        try:
+                            w = before_image.width + after_image.width
+                            h = max(before_image.height, after_image.height)
+                            combined = Image.new("RGB", (w, h))
+                            combined.paste(before_image.convert("RGB"), (0, 0))
+                            combined.paste(after_image.convert("RGB"), (before_image.width, 0))
+                            send_image = combined
+                            caption = f"{message}\n(Left: before, Right: after)"
+                        except Exception:
+                            send_image = after_image or before_image
+                    else:
+                        send_image = after_image or before_image
+
+                if send_image is not None:
+                    self._telegram.send_photo(send_image, caption=caption)
+                else:
+                    self._telegram.send_message(message)
+            else:
+                self._telegram.send_message(message)
         if self._email and self._email.is_configured():
             self._email.send_simple_mail(subject, message)
         if self._local_notifier:
@@ -109,7 +145,7 @@ class RegionMonitor:
                         f"Selected region stable for {stable_time:.0f}s (score <= {diff_threshold}). Sending notifications."
                     )
                     message = f"No more activity detected in the selected area for {stable_time:.0f} seconds."
-                    self._send_notifications(message)
+                    self._send_notifications(message, image=current)
 
                     if self._use_local and platform.system() == "Darwin":
                         print(
@@ -166,7 +202,12 @@ class RegionMonitor:
                     f"Change detected! (diff score: {score:.2f} > {diff_threshold}). Sending notifications."
                 )
                 message = f"Change detected in the monitored area! The watched region has changed."
-                self._send_notifications(message, subject="Change detected")
+                self._send_notifications(
+                    message,
+                    subject="Change detected",
+                    before_image=reference_image,
+                    after_image=current,
+                )
 
                 if self._use_local and platform.system() == "Darwin":
                     print(

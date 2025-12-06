@@ -22,7 +22,8 @@
   "notifications": {
     "useTelegram": true,
     "useEmail": false,
-    "useMacOS": true
+    "useMacOS": true,
+    "includeScreenshotInTelegram": false
   },
   "regions": {}
 }

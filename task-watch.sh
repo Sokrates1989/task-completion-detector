@@ -12,6 +12,13 @@ MODE="watch"
 REGION_NAME=""
 CHANGE_MODE=false
 
+# Load helper functions (bootstrap_python_env, migrate_screenshot_config, run_update, check_for_updates)
+HELPERS_PATH="${PROJECT_ROOT}/setup/modules/task-watch-helpers.sh"
+if [ -f "${HELPERS_PATH}" ]; then
+  # shellcheck source=/dev/null
+  . "${HELPERS_PATH}"
+fi
+
 # Backwards-compatible behaviour based on invoked name
 if [[ "${INVOKED_NAME}" == "ai-select" ]]; then
   MODE="select"
@@ -50,67 +57,8 @@ Notes:
 EOF
 }
 
-bootstrap_python_env() {
-  cd "${PROJECT_ROOT}/python"
-
-  # Choose Python interpreter: prefer macOS /usr/bin/python3 (has Tk) then fall back to python3
-  if [ -x /usr/bin/python3 ]; then
-    PYTHON_BIN=/usr/bin/python3
-  else
-    PYTHON_BIN=python3
-  fi
-
-  # Create venv if missing
-  if [ ! -d .venv ]; then
-    echo "Creating virtual environment using ${PYTHON_BIN}..."
-    "${PYTHON_BIN}" -m venv .venv
-  fi
-
-  # Activate venv
-  source .venv/bin/activate
-
-  # Install/update dependencies
-  pip install -r ../requirements.txt
-}
-
-run_update() {
-  if [ ! -d "${PROJECT_ROOT}/.git" ]; then
-    echo "No .git directory found at ${PROJECT_ROOT}. Auto-update requires a git clone."
-    exit 1
-  fi
-
-  echo "Updating task-completion-detector in ${PROJECT_ROOT}..."
-  cd "${PROJECT_ROOT}"
-  git pull --ff-only || {
-    echo "Warning: git pull failed (non-fast-forward or error)."
-    exit 1
-  }
-  echo "Code update complete. Refreshing Python environment..."
-  bootstrap_python_env
-  echo "Python environment refreshed. Update finished."
-}
-
-check_for_updates() {
-  # Only works for git clones; silently skip otherwise
-  if [ ! -d "${PROJECT_ROOT}/.git" ]; then
-    return
-  fi
-
-  cd "${PROJECT_ROOT}"
-
-  # Quietly update remote tracking information; ignore errors so we don't break the main flow
-  git remote update >/dev/null 2>&1 || return
-
-  local local_hash remote_hash base_hash
-  local_hash=$(git rev-parse @ 2>/dev/null) || return
-  remote_hash=$(git rev-parse @{u} 2>/dev/null) || return
-  base_hash=$(git merge-base @ @{u} 2>/dev/null) || return
-
-  # Remote is ahead of local (fast-forward available): notify user once
-  if [ "${local_hash}" = "${base_hash}" ] && [ "${remote_hash}" != "${local_hash}" ]; then
-    echo "[Update available] A newer version of task-completion-detector is available. Run 'task-watch --update' to update."
-  fi
-}
+# Helper functions (bootstrap_python_env, migrate_screenshot_config, run_update, check_for_updates)
+# are defined in setup/modules/task-watch-helpers.sh and sourced above.
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do

@@ -107,8 +107,15 @@ def _build_config_interactive(existing: Dict[str, Any]) -> Dict[str, Any]:
 
     # Notifications
     print("\nNotification channels:")
-    enable_telegram = _yes_no("Enable Telegram notifications?", default=False)
-    enable_email = _yes_no("Enable email notifications?", default=False)
+    existing_notifications = existing.get("notifications", {})
+    enable_telegram = _yes_no(
+        "Enable Telegram notifications?",
+        default=bool(existing_notifications.get("useTelegram", False)),
+    )
+    enable_email = _yes_no(
+        "Enable email notifications?",
+        default=bool(existing_notifications.get("useEmail", False)),
+    )
     
     # Platform-appropriate local notifications
     current_os = platform.system()
@@ -119,6 +126,15 @@ def _build_config_interactive(existing: Dict[str, Any]) -> Dict[str, Any]:
     else:
         local_prompt = "Enable local notifications?"
     enable_local = _yes_no(local_prompt, default=(current_os in ("Darwin", "Windows")))
+
+    include_screenshot_telegram = bool(
+        existing_notifications.get("includeScreenshotInTelegram", False)
+    )
+    if enable_telegram:
+        include_screenshot_telegram = _yes_no(
+            "Include a screenshot in Telegram notifications?",
+            default=include_screenshot_telegram,
+        )
 
     telegram = existing.get("telegram", {}) if enable_telegram else {}
     email = existing.get("email", {}) if enable_email else {}
@@ -175,6 +191,7 @@ def _build_config_interactive(existing: Dict[str, Any]) -> Dict[str, Any]:
         "useTelegram": bool(enable_telegram),
         "useEmail": bool(enable_email),
         "useLocalNotifications": bool(enable_local),
+        "includeScreenshotInTelegram": bool(include_screenshot_telegram),
     }
 
     # Preserve any existing regions

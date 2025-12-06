@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 from typing import Optional
 
 import requests
@@ -27,3 +28,29 @@ class TelegramNotifier:
             requests.post(url, json=payload, timeout=10)
         except Exception:
             pass
+
+    def send_photo(self, image, caption: Optional[str] = None) -> None:
+        if not self.is_configured():
+            return
+        if image is None:
+            return
+        url = f"https://api.telegram.org/bot{self._bot_token}/sendPhoto"
+        try:
+            buffer = BytesIO()
+            image.save(buffer, format="PNG")
+            buffer.seek(0)
+            files = {
+                "photo": ("screenshot.png", buffer, "image/png"),
+            }
+            data = {"chat_id": self._chat_id}
+            if caption is not None:
+                data["caption"] = caption
+            requests.post(url, data=data, files=files, timeout=10)
+        except Exception:
+            # Best-effort; ignore network errors for now.
+            pass
+        finally:
+            try:
+                buffer.close()
+            except Exception:
+                pass
