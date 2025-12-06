@@ -55,13 +55,34 @@ print()
 print("Your config was created before Telegram screenshot support was added.")
 
 def ask() -> bool:
-    while True:
-        ans = input("Enable sending screenshots in Telegram notifications? [y/N] ").strip().lower()
-        if ans in ("", "n", "no"):
-            return False
-        if ans in ("y", "yes"):
-            return True
-        print("Please answer y or n.")
+    """Ask user on the real TTY instead of stdin.
+
+    The script itself is provided via stdin (here-doc), so reading from stdin
+    would immediately hit EOF. By opening /dev/tty we can still interact with
+    the user when a TTY is available, and safely default to "no" otherwise.
+    """
+    try:
+        tty = open("/dev/tty", "r")
+    except OSError:
+        # No TTY available (e.g. non-interactive run) -> default to "no"
+        return False
+
+    try:
+        while True:
+            sys.stdout.write("Enable sending screenshots in Telegram notifications? [y/N] ")
+            sys.stdout.flush()
+            ans = tty.readline()
+            if not ans:
+                # EOF from TTY -> default to "no"
+                return False
+            ans = ans.strip().lower()
+            if ans in ("", "n", "no"):
+                return False
+            if ans in ("y", "yes"):
+                return True
+            print("Please answer y or n.")
+    finally:
+        tty.close()
 
 enable = ask()
 notif["includeScreenshotInTelegram"] = enable
