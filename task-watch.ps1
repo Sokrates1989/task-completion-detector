@@ -5,6 +5,7 @@ param(
     [switch]$SelectRegion,
     [switch]$select,
     [switch]$r,
+    [switch]$s,
     
     [switch]$Config,
     [switch]$setup_config,
@@ -29,7 +30,7 @@ function Show-Usage {
 Usage: task-watch.ps1 [OPTION]
 
   (no option)            Monitor the last selected default region ($DefaultRegionName).
-  -SelectRegion, -r      Select a region and then start monitoring it.
+  -SelectRegion, -r, -s  Select a region and then start monitoring it.
   -Config, -c            Run the guided configuration / config editor.
   -Update, -u            Update the task-completion-detector git clone (if available) and exit.
   -Help, -h              Show this help.
@@ -142,7 +143,7 @@ if ($Update -or $u) {
     exit 0
 }
 
-if ($SelectRegion -or $select -or $r) {
+if ($SelectRegion -or $select -or $r -or $s) {
     Initialize-PythonEnv
     python main.py select-region --name $DefaultRegionName
     if ($LASTEXITCODE -eq 0) {

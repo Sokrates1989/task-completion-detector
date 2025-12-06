@@ -22,7 +22,8 @@ Usage: task-watch [OPTION]
   (no option)            Monitor the last selected default region (${DEFAULT_REGION_NAME}).
   --select-region
   --select
-  -r                     Select a region and then start monitoring it.
+  -r
+  -s                     Select a region and then start monitoring it.
   --config
   --setup-config
   --edit-config
@@ -83,7 +84,7 @@ run_update() {
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --select-region|--select|-r)
+    --select-region|--select|-r|-s)
       MODE="select"
       shift
       ;;

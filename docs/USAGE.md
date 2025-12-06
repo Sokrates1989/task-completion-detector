@@ -24,14 +24,14 @@ After installation you can use the `task-watch` launcher (recommended) or, for a
 **macOS - From Terminal:**
 
 - `task-watch --select-region`  – select a screen region and immediately start monitoring it.
-  - Short aliases: `task-watch --select` or `task-watch -r`.
+  - Short aliases: `task-watch --select`, `task-watch -r`, or `task-watch -s`.
 - `task-watch` – monitor the last selected default region again.
 - `task-watch --config` – rerun the guided configuration wizard / config editor.
 - `task-watch --update` – update the local git clone of task-completion-detector (when installed from git) and exit.
 
 **Windows - From PowerShell (after restarting terminal):**
 
-- `task-watch -r`  – select a screen region and immediately start monitoring it.
+- `task-watch -r` or `task-watch -s`  – select a screen region and immediately start monitoring it.
 - `task-watch` – monitor the last selected default region again.
 - `task-watch -c` – rerun the guided configuration wizard / config editor.
 - `task-watch -u` – update the local git clone of task-completion-detector (when installed from git) and exit.
