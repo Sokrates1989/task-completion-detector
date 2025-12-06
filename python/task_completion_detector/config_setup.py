@@ -218,7 +218,8 @@ def run_interactive() -> None:
     existing: Dict[str, Any] = {}
     if os.path.exists(config_path):
         try:
-            with open(config_path, "r", encoding="utf-8") as f:
+            # Use utf-8-sig to tolerate a UTF-8 BOM written by external tools
+            with open(config_path, "r", encoding="utf-8-sig") as f:
                 existing = json.load(f)
         except Exception:
             print(f"Existing config at {config_path} could not be parsed; starting from defaults.")

@@ -24,7 +24,8 @@ class ConfigLoader:
                     f"Config file not found: {self._config_path}. "
                     "Copy config/config.txt.template to config/config.txt and fill it in."
                 )
-            with open(self._config_path, "r", encoding="utf-8") as f:
+            # Use utf-8-sig to gracefully handle files that may have a UTF-8 BOM
+            with open(self._config_path, "r", encoding="utf-8-sig") as f:
                 self._config = json.load(f)
             self._migrate_if_needed()
         return self._config
