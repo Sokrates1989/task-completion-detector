@@ -13,7 +13,7 @@ DEFAULT_MONITOR = {
 DEFAULT_MONITOR_CHANGE = {
     "intervalSeconds": 1.0,
     # No stability duration for change-watch – we only care about sensitivity.
-    "differenceThreshold": 10.0,
+    "differenceThreshold": 2.0,
 }
 
 
