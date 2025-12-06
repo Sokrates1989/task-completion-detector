@@ -21,7 +21,7 @@ def _load_monitor_settings(cfg: Dict[str, Any], mode: str = "stable") -> Monitor
 
     interval = float(monitor_cfg.get("intervalSeconds", 1.0))
     stable_seconds = float(monitor_cfg.get("stableSecondsThreshold", 30.0))
-    diff_threshold = float(monitor_cfg.get("differenceThreshold", 2.0))
+    diff_threshold = float(monitor_cfg.get("differenceThreshold", 10.0))
 
     return MonitorSettings(
         interval_seconds=interval,

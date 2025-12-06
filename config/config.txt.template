@@ -6,7 +6,7 @@
   },
   "monitorChange": {
     "intervalSeconds": 1.0,
-    "differenceThreshold": 2.0
+    "differenceThreshold": 10.0
   },
   "telegram": {
     "botToken": "BOT:TOKEN",
