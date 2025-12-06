@@ -86,6 +86,17 @@ change-watch [name]                 # watch named region for changes (or default
 - `ai-select` – same as `task-watch --select-region` (legacy, macOS)
 - `ai-watch` – same as `task-watch` (legacy, macOS)
 
+### Telegram notifications
+
+When Telegram notifications are enabled in the config, the tool sends a chat message **and** a screenshot of the monitored area:
+
+- In `task-watch` (stability mode), the screenshot shows the region once it has become stable.
+- In `change-watch` (change mode), the screenshot combines the "before" and "after" views side by side for easier comparison.
+
+Example Telegram notification:
+
+![Telegram notification example](docs/media/telegram_notification.png)
+
 ## 📚 More docs
 
 - **Installation & configuration details:** `docs/INSTALL.md`
