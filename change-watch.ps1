@@ -118,6 +118,12 @@ function Test-UpdateAvailable {
 }
 
 # Main execution
+if ($Update -or $u) {
+    # Delegate update behavior to task-watch.ps1 so semantics stay in one place
+    & (Join-Path $ProjectRoot "task-watch.ps1") -u
+    exit $LASTEXITCODE
+}
+
 Test-UpdateAvailable
 
 if ($Help -or $h) {
