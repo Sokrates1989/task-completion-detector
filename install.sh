@@ -17,9 +17,11 @@ if [ -w "${BIN_DIR}" ]; then
   # Legacy aliases (silent, for backward compatibility)
   ln -sf "${TASK_WATCH_SCRIPT}" "${BIN_DIR}/ai-select"
   ln -sf "${TASK_WATCH_SCRIPT}" "${BIN_DIR}/ai-watch"
-  echo "Created 'task-watch' command in ${BIN_DIR}."
+  # Alias for change-watch mode (equivalent to: task-watch --change)
+  ln -sf "${TASK_WATCH_SCRIPT}" "${BIN_DIR}/change-watch"
+  echo "Created 'task-watch' and 'change-watch' commands in ${BIN_DIR}."
 else
-  echo "Warning: cannot write to ${BIN_DIR}. Run this script with sudo to enable the 'task-watch' command."
+  echo "Warning: cannot write to ${BIN_DIR}. Run this script with sudo to enable the 'task-watch' and 'change-watch' commands."
 fi
 
 ########## Desktop shortcuts ##########
