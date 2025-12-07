@@ -11,6 +11,7 @@ DEFAULT_REGION_NAME="default"
 MODE="watch"
 REGION_NAME=""
 CHANGE_MODE=false
+STABLE_SECONDS=""
 
 # Load helper functions (bootstrap_python_env, migrate_screenshot_config, run_update, check_for_updates)
 HELPERS_PATH="${PROJECT_ROOT}/setup/modules/task-watch-helpers.sh"
@@ -34,8 +35,9 @@ Usage: task-watch [OPTION] [REGION_NAME]
   REGION_NAME            Monitor the named region.
   --select-region
   --select
-  -r
-  -s                     Select a region and then start monitoring it.
+  -r                     Select a region and then start monitoring it.
+  --stable-seconds SECONDS
+  -s SECONDS             Override stableSecondsThreshold for this run (stability mode only).
   --change
   --watch-change
   -w                     Advanced: watch for changes instead of stability (used by change-watch).
@@ -63,13 +65,21 @@ EOF
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --select-region|--select|-r|-s)
+    --select-region|--select|-r)
       MODE="select"
       shift
       ;;
     --change|--watch-change|-w)
       CHANGE_MODE=true
       shift
+      ;;
+    --stable-seconds|-s)
+      if [[ $# -lt 2 ]]; then
+        echo "Error: --stable-seconds requires a value." >&2
+        exit 1
+      fi
+      STABLE_SECONDS="$2"
+      shift 2
       ;;
     --config|--setup-config|--edit-config|-c)
       MODE="config"
@@ -106,15 +116,20 @@ case "${MODE}" in
     check_for_updates
     bootstrap_python_env
     CHANGE_FLAG=""
+    EXTRA_ARGS=()
     if [[ "${CHANGE_MODE}" == true ]]; then
       CHANGE_FLAG="--change"
+    else
+      if [[ -n "${STABLE_SECONDS}" ]]; then
+        EXTRA_ARGS+=("--stable-seconds" "${STABLE_SECONDS}")
+      fi
     fi
     if [[ -n "${REGION_NAME}" ]]; then
       python main.py select-region --name "${REGION_NAME}" --also-name "${DEFAULT_REGION_NAME}" && \
-        python main.py monitor --name "${REGION_NAME}" ${CHANGE_FLAG}
+        python main.py monitor --name "${REGION_NAME}" ${CHANGE_FLAG} "${EXTRA_ARGS[@]}"
     else
       python main.py select-region --name "${DEFAULT_REGION_NAME}" && \
-        python main.py monitor --name "${DEFAULT_REGION_NAME}" ${CHANGE_FLAG}
+        python main.py monitor --name "${DEFAULT_REGION_NAME}" ${CHANGE_FLAG} "${EXTRA_ARGS[@]}"
     fi
     ;;
 
@@ -127,13 +142,18 @@ case "${MODE}" in
     check_for_updates
     bootstrap_python_env
     CHANGE_FLAG=""
+    EXTRA_ARGS=()
     if [[ "${CHANGE_MODE}" == true ]]; then
       CHANGE_FLAG="--change"
+    else
+      if [[ -n "${STABLE_SECONDS}" ]]; then
+        EXTRA_ARGS+=("--stable-seconds" "${STABLE_SECONDS}")
+      fi
     fi
     if [[ -n "${REGION_NAME}" ]]; then
-      python main.py monitor --name "${REGION_NAME}" ${CHANGE_FLAG}
+      python main.py monitor --name "${REGION_NAME}" ${CHANGE_FLAG} "${EXTRA_ARGS[@]}"
     else
-      python main.py monitor --name "${DEFAULT_REGION_NAME}" ${CHANGE_FLAG}
+      python main.py monitor --name "${DEFAULT_REGION_NAME}" ${CHANGE_FLAG} "${EXTRA_ARGS[@]}"
     fi
     ;;
 

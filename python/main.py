@@ -83,6 +83,11 @@ def cmd_monitor(args: argparse.Namespace) -> None:
     mode = "change" if is_change else "stable"
     settings = _load_monitor_settings(cfg, mode=mode)
 
+    # Allow overriding stableSecondsThreshold on a per-run basis in stability mode
+    stable_override = getattr(args, "stable_seconds", None)
+    if (not is_change) and (stable_override is not None):
+        settings.stable_seconds_threshold = float(stable_override)
+
     monitor = RegionMonitor(args.name, region, settings, config_loader)
 
     # Choose monitoring mode based on --change flag
@@ -118,6 +123,12 @@ def main() -> None:
         "--change",
         action="store_true",
         help="Watch for changes instead of stability (notify immediately when region changes)",
+    )
+    p_monitor.add_argument(
+        "--stable-seconds",
+        type=float,
+        default=None,
+        help="Override stableSecondsThreshold for this run (stability mode only)",
     )
     p_monitor.set_defaults(func=cmd_monitor)
 
