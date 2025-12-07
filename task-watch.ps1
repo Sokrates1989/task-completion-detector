@@ -5,7 +5,6 @@ param(
     [switch]$SelectRegion,
     [switch]$select,
     [switch]$r,
-    [switch]$s,
     
     [switch]$Change,
     [switch]$WatchChange,
@@ -23,7 +22,7 @@ param(
     [switch]$h,
     
     [string]$RegionName,
-    [double]$StableSeconds
+    [Alias("s")][double]$StableSeconds
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,10 +41,10 @@ function Show-Usage {
     Write-Host @"
 Usage: task-watch.ps1 [OPTION] [RegionName]
 
-  (no option)            Monitor the last selected default region ($DefaultRegionName).
-  RegionName             Monitor the named region.
-  -StableSeconds <sec>  Override stableSecondsThreshold for this run (stability mode only).
-  -SelectRegion, -r, -s  Select a region and then start monitoring it (optionally naming it).
+  (no option)                Monitor the last selected default region ($DefaultRegionName).
+  RegionName                 Monitor the named region.
+  -StableSeconds <sec>, -s   Override stableSecondsThreshold for this run (stability mode only).
+  -SelectRegion, -r          Select a region and then start monitoring it (optionally naming it).
   -Change, -w            Advanced: watch for changes instead of stability (used by change-watch).
   -Config, -c, --setup-config, --edit-config
                         Run the guided configuration / config editor.
@@ -73,7 +72,7 @@ if ($Update -or $u) {
 
 Test-UpdateAvailable
 
-if ($SelectRegion -or $select -or $r -or $s) {
+if ($SelectRegion -or $select -or $r) {
     Initialize-PythonEnv
     $targetName = if ($RegionName) { $RegionName } else { $DefaultRegionName }
     $isChange = $Change -or $WatchChange -or $w
