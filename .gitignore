@@ -10,3 +10,7 @@ python/.venv/
 __pycache__/
 **/__pycache__/
 *.py[cod]
+
+
+# .DS_Store files of macOS.
+.DS_Store
