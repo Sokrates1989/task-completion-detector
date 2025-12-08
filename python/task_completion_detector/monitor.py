@@ -190,6 +190,8 @@ class RegionMonitor:
         # Capture initial reference image
         reference_image = self._capture_region()
         print("Reference image captured. Watching for changes...")
+        required_hits = 2
+        consecutive_hits = 0
 
         while True:
             time.sleep(interval)
@@ -198,6 +200,11 @@ class RegionMonitor:
             score = self._difference_score(reference_image, current)
 
             if score > diff_threshold:
+                consecutive_hits += 1
+            else:
+                consecutive_hits = 0
+
+            if consecutive_hits >= required_hits:
                 print(
                     f"Change detected! (diff score: {score:.2f} > {diff_threshold}). Sending notifications."
                 )
