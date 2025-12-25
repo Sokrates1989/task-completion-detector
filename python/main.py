@@ -31,6 +31,11 @@ def _load_monitor_settings(cfg: Dict[str, Any], mode: str = "stable") -> Monitor
 
 
 def cmd_select_region(args: argparse.Namespace) -> None:
+    """Interactively capture and save a screen region.
+
+    Args:
+        args (argparse.Namespace): Parsed CLI args containing the region name and optional aliases.
+    """
     from task_completion_detector.region_selector import RegionSelector
 
     config_loader = ConfigLoader()
@@ -64,14 +69,37 @@ def cmd_select_region(args: argparse.Namespace) -> None:
 
 
 def cmd_monitor(args: argparse.Namespace) -> None:
+    """Monitor a region, falling back to interactive selection if the name is unknown.
+
+    Args:
+        args (argparse.Namespace): Parsed CLI args with region name, monitoring mode, and overrides.
+    """
     config_loader = ConfigLoader()
     cfg = config_loader.load()
-    region_cfg = config_loader.get_region(args.name)
+    region_cfg: Dict[str, Any]
+    region_obj = None
+    try:
+        region_cfg = config_loader.get_region(args.name)
+    except KeyError:
+        print(f"Region '{args.name}' not found. Launching interactive selection...")
+        from task_completion_detector.region_selector import RegionSelector
+
+        selector = RegionSelector(config_loader)
+        region_obj = selector.select_region(args.name)
+        if region_obj is None:
+            print("Region selection cancelled.")
+            sys.exit(1)
+        region_cfg = {
+            "x": region_obj.x,
+            "y": region_obj.y,
+            "width": region_obj.width,
+            "height": region_obj.height,
+        }
 
     # Import Region lazily to avoid issues if typing-only imports change
     from task_completion_detector.region_selector import Region
 
-    region = Region(
+    region = region_obj or Region(
         x=int(region_cfg["x"]),
         y=int(region_cfg["y"]),
         width=int(region_cfg["width"]),
@@ -98,12 +126,14 @@ def cmd_monitor(args: argparse.Namespace) -> None:
 
 
 def cmd_setup_config(_args: argparse.Namespace) -> None:
+    """Run the guided configuration setup."""
     from task_completion_detector.config_setup import run_interactive
 
     run_interactive()
 
 
 def main() -> None:
+    """Entry point for the Task Completion Detector CLI."""
     parser = argparse.ArgumentParser(description="Task Completion Detector CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
 

@@ -65,6 +65,17 @@ class ConfigLoader:
         return cfg.get(key, default)
 
     def get_region(self, name: str) -> Dict[str, Any]:
+        """Return a saved region by name.
+
+        Args:
+            name (str): Region identifier to look up.
+
+        Returns:
+            Dict[str, Any]: Stored region mapping with x, y, width, and height.
+
+        Raises:
+            KeyError: If the region name does not exist in the config.
+        """
         cfg = self.load()
         regions = cfg.get("regions", {})
         # Backward compatibility: treat legacy 'windsurf_panel' as the default region name
