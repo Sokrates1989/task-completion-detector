@@ -1,9 +1,16 @@
+"""Dispatch region selection, monitoring, and configuration commands."""
+
 import argparse
+import platform
+import shlex
 import sys
 from typing import Any, Dict
 
 from task_completion_detector.config_loader import ConfigLoader
+from task_completion_detector.i18n import translate
+from task_completion_detector.models import Region
 from task_completion_detector.monitor import MonitorSettings, RegionMonitor
+from task_completion_detector.screen_capture import ScreenCaptureError
 
 
 def _load_monitor_settings(cfg: Dict[str, Any], mode: str = "stable") -> MonitorSettings:
@@ -68,6 +75,29 @@ def cmd_select_region(args: argparse.Namespace) -> None:
         )
 
 
+def _report_capture_error(
+    name: str, region: Region, error: ScreenCaptureError, is_change: bool
+) -> None:
+    """Write localized recovery instructions to stderr without a traceback."""
+    launcher = "change-watch" if is_change else "task-watch"
+    select_flag = "-r" if platform.system() == "Windows" else "--select-region"
+    command = shlex.join([launcher, select_flag, name])
+    print(
+        translate(
+            str(error),
+            name=name,
+            x=region.x,
+            y=region.y,
+            width=region.width,
+            height=region.height,
+            command=command,
+        ),
+        file=sys.stderr,
+    )
+    if str(error) == "capture.failed" and platform.system() == "Darwin":
+        print(translate("capture.macos_permission"), file=sys.stderr)
+
+
 def cmd_monitor(args: argparse.Namespace) -> None:
     """Monitor a region, falling back to interactive selection if the name is unknown.
 
@@ -96,9 +126,6 @@ def cmd_monitor(args: argparse.Namespace) -> None:
             "height": region_obj.height,
         }
 
-    # Import Region lazily to avoid issues if typing-only imports change
-    from task_completion_detector.region_selector import Region
-
     region = region_obj or Region(
         x=int(region_cfg["x"]),
         y=int(region_cfg["y"]),
@@ -118,11 +145,14 @@ def cmd_monitor(args: argparse.Namespace) -> None:
 
     monitor = RegionMonitor(args.name, region, settings, config_loader)
 
-    # Choose monitoring mode based on --change flag
-    if is_change:
-        monitor.monitor_until_change()
-    else:
-        monitor.monitor_until_stable()
+    try:
+        if is_change:
+            monitor.monitor_until_change()
+        else:
+            monitor.monitor_until_stable()
+    except ScreenCaptureError as error:
+        _report_capture_error(args.name, region, error, is_change)
+        raise SystemExit(1) from None
 
 
 def cmd_setup_config(_args: argparse.Namespace) -> None:

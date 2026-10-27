@@ -1,0 +1,24 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: task-completion-detector\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-27 00:00+0000\n"
+"PO-Revision-Date: 2026-10-27 00:00+0000\n"
+"Last-Translator: task-completion-detector maintainers\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "capture.offscreen"
+msgstr "Saved region '{name}' (x={x}, y={y}, width={width}, height={height}) is outside the connected displays. Your display layout may have changed. Run {command} to select a visible region."
+
+msgid "capture.invalid_size"
+msgstr "Saved region '{name}' has invalid dimensions (width={width}, height={height}). Run {command} to select a new region."
+
+msgid "capture.failed"
+msgstr "Could not capture region '{name}' (x={x}, y={y}, width={width}, height={height}). If your display layout changed, run {command} to select the region again."
+
+msgid "capture.macos_permission"
+msgstr "If capture still fails, allow Screen Recording for your terminal in System Settings > Privacy & Security, then restart the terminal."

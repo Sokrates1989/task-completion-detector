@@ -147,6 +147,13 @@ After this finishes you should be able to:
 
 ### macOS
 
+- **Saved region is outside the connected displays / `UnidentifiedImageError`:**
+  - A saved region can become unavailable after disconnecting a monitor or changing the display arrangement.
+  - Run `task-watch --select-region` (or `task-watch --select-region name` for a named region), then follow the mouse-position prompts to save a visible region and start monitoring.
+  - Use `change-watch --select-region [name]` to select a region and watch for changes instead of stability.
+  - Negative coordinates are valid when a connected display is to the left of or above the main display; do not replace them with zero manually.
+  - The monitor checks for off-screen regions on macOS when display information is available. Screenshot failures exit with status 1 and recovery instructions in both monitoring modes.
+
 - **Cannot create `/usr/local/bin` symlinks:**
   - Run `./install.sh` with `sudo` if you want global `task-watch` (and alias) commands.
   - The script will attempt to fix the ownership of the `config` directory back to your normal user.
@@ -175,3 +182,24 @@ After this finishes you should be able to:
   - Make sure to check "Add Python to PATH" during installation.
 
 For more details on how the tool behaves at runtime, see `docs/USAGE.md`.
+
+## Local validation
+
+With the requirements installed, run from the repository root:
+
+```bash
+PYTHONPATH=python python -m unittest discover -s python/tests -v
+```
+
+These tests mock the display and capture boundaries and disable notification transports.
+They do not capture your desktop or send notifications.
+
+New capture diagnostics use Python's standard `gettext` provider with English and German catalogs under
+`python/task_completion_detector/locales/`. Other existing CLI messages retain their current language.
+Locale selection follows `LANGUAGE`, `LC_ALL`, `LC_MESSAGES`, and `LANG`, with English as the fallback.
+After editing a catalog, regenerate its compiled file using GNU gettext, for example:
+
+```bash
+msgfmt --check --check-format -o python/task_completion_detector/locales/en/LC_MESSAGES/messages.mo python/task_completion_detector/locales/en/LC_MESSAGES/messages.po
+msgfmt --check --check-format -o python/task_completion_detector/locales/de/LC_MESSAGES/messages.mo python/task_completion_detector/locales/de/LC_MESSAGES/messages.po
+```

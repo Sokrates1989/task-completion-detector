@@ -1,0 +1,24 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: task-completion-detector\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-27 00:00+0000\n"
+"PO-Revision-Date: 2026-10-27 00:00+0000\n"
+"Last-Translator: task-completion-detector maintainers\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "capture.offscreen"
+msgstr "Der gespeicherte Bereich '{name}' (x={x}, y={y}, Breite={width}, Höhe={height}) liegt außerhalb der angeschlossenen Bildschirme. Die Bildschirmanordnung hat sich möglicherweise geändert. Wähle mit {command} einen sichtbaren Bereich aus."
+
+msgid "capture.invalid_size"
+msgstr "Der gespeicherte Bereich '{name}' hat ungültige Abmessungen (Breite={width}, Höhe={height}). Wähle mit {command} einen neuen Bereich aus."
+
+msgid "capture.failed"
+msgstr "Der Bereich '{name}' (x={x}, y={y}, Breite={width}, Höhe={height}) konnte nicht aufgenommen werden. Falls sich die Bildschirmanordnung geändert hat, wähle den Bereich mit {command} erneut aus."
+
+msgid "capture.macos_permission"
+msgstr "Falls die Aufnahme weiterhin fehlschlägt, erlaube deinem Terminal die Bildschirmaufnahme unter Systemeinstellungen > Datenschutz & Sicherheit und starte das Terminal neu."

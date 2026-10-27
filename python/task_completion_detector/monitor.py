@@ -1,16 +1,18 @@
+"""Compare captured regions over time and send configured notifications."""
+
 import platform
 import time
 from dataclasses import dataclass
 from typing import Optional, TYPE_CHECKING
 
-from PIL import Image, ImageChops, ImageGrab, ImageStat
+from PIL import Image, ImageChops, ImageStat
 
 from .config_loader import ConfigLoader
 from .notifications import EmailNotifier, MacOSNotifier, TelegramNotifier, WindowsNotifier
+from .screen_capture import capture_region
 
 if TYPE_CHECKING:
-    # Only used for typing; avoid importing Tk-dependent code at runtime
-    from .region_selector import Region
+    from .models import Region
 
 
 @dataclass
@@ -57,14 +59,9 @@ class RegionMonitor:
             elif platform.system() == "Windows":
                 self._local_notifier = WindowsNotifier()
 
-    def _capture_region(self):
-        bbox = (
-            int(self._region.x),
-            int(self._region.y),
-            int(self._region.x + self._region.width),
-            int(self._region.y + self._region.height),
-        )
-        return ImageGrab.grab(bbox=bbox)
+    def _capture_region(self) -> Image.Image:
+        """Capture the selected region, propagating recoverable capture failures."""
+        return capture_region(self._region)
 
     @staticmethod
     def _difference_score(img1, img2) -> float:
