@@ -1,6 +1,7 @@
 """Compare captured regions over time and send configured notifications."""
 
 import platform
+import sys
 import time
 from dataclasses import dataclass
 from typing import Optional, TYPE_CHECKING
@@ -8,11 +9,14 @@ from typing import Optional, TYPE_CHECKING
 from PIL import Image, ImageChops, ImageStat
 
 from .config_loader import ConfigLoader
+from .i18n import translate
 from .notifications import EmailNotifier, MacOSNotifier, TelegramNotifier, WindowsNotifier
 from .screen_capture import capture_region
 
 if TYPE_CHECKING:
     from .models import Region
+
+_CHANGE_REQUIRED_HITS = 2
 
 
 @dataclass
@@ -23,7 +27,7 @@ class MonitorSettings:
 
 
 class RegionMonitor:
-    """Monitor a screen region and notify when it becomes visually stable."""
+    """Announce monitoring, then notify on the configured stability/change rule."""
 
     def __init__(
         self,
@@ -62,6 +66,35 @@ class RegionMonitor:
     def _capture_region(self) -> Image.Image:
         """Capture the selected region, propagating recoverable capture failures."""
         return capture_region(self._region)
+
+    def _send_monitoring_started(self, is_change: bool) -> None:
+        """Send one text-only startup message through enabled remote channels.
+
+        Called only after the first successful capture. Describe the effective
+        settings and report failed/unconfigured channels without stopping the
+        monitor or preventing the other channel from being attempted.
+        """
+        key = "monitor.started.change" if is_change else "monitor.started.stable"
+        message = translate(
+            key,
+            name=self._name,
+            x=self._region.x,
+            y=self._region.y,
+            width=self._region.width,
+            height=self._region.height,
+            interval_seconds=self._settings.interval_seconds,
+            stable_seconds=self._settings.stable_seconds_threshold,
+            difference_threshold=self._settings.difference_threshold,
+            required_hits=_CHANGE_REQUIRED_HITS,
+        )
+        if self._telegram is not None:
+            if not self._telegram.is_configured() or not self._telegram.send_message(message):
+                print(translate("monitor.started.telegram_failed"), file=sys.stderr)
+        if self._email is not None:
+            if not self._email.is_configured() or not self._email.send_simple_mail(
+                translate("monitor.started.subject"), message
+            ):
+                print(translate("monitor.started.email_failed"), file=sys.stderr)
 
     @staticmethod
     def _difference_score(img1, img2) -> float:
@@ -127,6 +160,9 @@ class RegionMonitor:
         while True:
             current = self._capture_region()
 
+            if last_image is None:
+                self._send_monitoring_started(is_change=False)
+
             if last_image is not None:
                 score = self._difference_score(last_image, current)
                 # Debug print; later we can gate behind a flag if too noisy.
@@ -186,8 +222,9 @@ class RegionMonitor:
 
         # Capture initial reference image
         reference_image = self._capture_region()
+        self._send_monitoring_started(is_change=True)
         print("Reference image captured. Watching for changes...")
-        required_hits = 2
+        required_hits = _CHANGE_REQUIRED_HITS
         consecutive_hits = 0
 
         while True:

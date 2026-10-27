@@ -37,3 +37,18 @@ msgstr "Python 3.9 oder neuer mit OpenSSL 1.1.1 oder neuer ist erforderlich. Ins
 
 msgid "environment.failed"
 msgstr "Die Python-Umgebung konnte nicht vorbereitet werden. Prüfe die obige Befehlsausgabe und versuche es erneut."
+
+msgid "monitor.started.subject"
+msgstr "Überwachung gestartet"
+
+msgid "monitor.started.stable"
+msgstr "Überwachung gestartet (task-watch).\nBeobachteter Bereich '{name}': x={x}, y={y}, {width}×{height} px.\nPrüfung alle {interval_seconds:g}s. Ich benachrichtige dich nach {stable_seconds:g}s stabiler Anzeige: Die Bildabweichung zwischen aufeinanderfolgenden Prüfungen bleibt auf einer Skala von 0–255 bei ≤ {difference_threshold:g}."
+
+msgid "monitor.started.change"
+msgstr "Überwachung gestartet (change-watch).\nBeobachteter Bereich '{name}': x={x}, y={y}, {width}×{height} px.\nPrüfung alle {interval_seconds:g}s. Ich benachrichtige dich, wenn die Bildabweichung gegenüber dem Startbild bei {required_hits} aufeinanderfolgenden Prüfungen auf einer Skala von 0–255 über {difference_threshold:g} liegt."
+
+msgid "monitor.started.telegram_failed"
+msgstr "Die Startnachricht konnte nicht über Telegram gesendet werden. Die Überwachung läuft weiter; prüfe deine Telegram-Einstellungen und die Verbindung."
+
+msgid "monitor.started.email_failed"
+msgstr "Die Start-E-Mail konnte nicht gesendet werden. Die Überwachung läuft weiter; prüfe deine E-Mail-Einstellungen und die Verbindung."

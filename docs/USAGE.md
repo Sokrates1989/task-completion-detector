@@ -10,7 +10,7 @@ It periodically captures screenshots of that region and compares them.
 1. **task-watch (stability mode)** – Notify when the region becomes **stable** (no activity for X seconds).
    - Use case: Watch an AI assistant's output area; get notified when it stops typing.
 
-2. **change-watch (change mode)** – Notify **immediately** when the region **changes**.
+2. **change-watch (change mode)** – Notify when a change is confirmed by **two consecutive checks**.
    - Use case: Watch a static indicator (e.g., a pause button, progress bar, or loading spinner) that changes when a long-running task completes.
 
 Notifications can be sent via:
@@ -18,6 +18,19 @@ Notifications can be sent via:
 - Telegram
 - Email
 - Local notifications (macOS Notification Center or Windows Toast Notifications)
+
+### Startup confirmation
+
+Each monitoring run automatically sends one **Monitoring started** message through every enabled Telegram/email channel after the first successful screen capture. It identifies the region by name, coordinates, and size, and briefly explains the active criteria:
+
+- **task-watch:** the check interval and stability duration, plus the maximum image difference allowed between consecutive checks. The duration includes any `--stable-seconds` override for that run.
+- **change-watch:** the check interval and difference threshold relative to the starting image. The difference must exceed the threshold for two consecutive checks before the change alert is sent.
+
+The difference score is the average grayscale pixel difference on a 0–255 scale. Startup messages use your effective settings and the terminal's English/German locale.
+
+Startup confirmations are text-only, including when Telegram screenshots are enabled. Local desktop notifications remain reserved for the detected event. No confirmation is sent if the first screen capture fails.
+
+If an enabled channel is missing credentials or rejects/fails to send the startup message, the terminal reports which channel failed. Monitoring continues and the other enabled channel is still attempted. Receiving the confirmation lets you check that channel before waiting for the final alert.
 
 ---
 
@@ -114,6 +127,7 @@ python main.py monitor --name default --change
 4. **Let the tool monitor the region:**
 - After a successful selection via `task-watch --select-region`, monitoring starts automatically.
 - You can also run `task-watch` later to reuse the last selected default region.
+- Look for the startup confirmation in your enabled Telegram/email channels; it describes what this run is watching and when it will notify you.
 
 5. **Get notified when the AI stops changing the UI:**
    - The monitor checks the region every `intervalSeconds` seconds.
@@ -125,7 +139,7 @@ python main.py monitor --name default --change
 If you have a static indicator (like a pause button or progress bar) that changes when a task completes,
 use `change-watch` instead of `task-watch`:
 
-- `change-watch` or `task-watch --change` – notifies **immediately** when the region changes.
+- `change-watch` or `task-watch --change` – notifies when two consecutive checks exceed the difference threshold relative to the starting image.
 - Useful for long-running tasks where you want instant notification when a static indicator updates.
 
 You can tune these thresholds by:
