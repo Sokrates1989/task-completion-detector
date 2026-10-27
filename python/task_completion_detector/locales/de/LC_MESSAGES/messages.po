@@ -22,3 +22,18 @@ msgstr "Der Bereich '{name}' (x={x}, y={y}, Breite={width}, Höhe={height}) konn
 
 msgid "capture.macos_permission"
 msgstr "Falls die Aufnahme weiterhin fehlschlägt, erlaube deinem Terminal die Bildschirmaufnahme unter Systemeinstellungen > Datenschutz & Sicherheit und starte das Terminal neu."
+
+msgid "environment.preparing"
+msgstr "Die Python-Umgebung wird mit {python} vorbereitet..."
+
+msgid "environment.backup"
+msgstr "Die bisherige Python-Umgebung bleibt unter {backup} erhalten."
+
+msgid "environment.restored"
+msgstr "Die Einrichtung ist fehlgeschlagen; die bisherige Python-Umgebung wurde wiederhergestellt."
+
+msgid "environment.python_required"
+msgstr "Python 3.9 oder neuer mit OpenSSL 1.1.1 oder neuer ist erforderlich. Installiere Python von python.org oder führe 'brew install python' aus und starte task-watch erneut. Mit TASK_WATCH_PYTHON kannst du den Interpreterpfad für eine neue Umgebung festlegen."
+
+msgid "environment.failed"
+msgstr "Die Python-Umgebung konnte nicht vorbereitet werden. Prüfe die obige Befehlsausgabe und versuche es erneut."

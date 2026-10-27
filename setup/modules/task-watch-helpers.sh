@@ -1,24 +1,19 @@
+# Shared launcher setup, configuration migration, and update helpers.
+
+# Prepare the checkout's Python environment, then activate it in the caller.
+# Uses PROJECT_ROOT; forwards optional --refresh to refresh pip during updates.
+# Returns nonzero on setup failure without activating an incompatible Python.
 bootstrap_python_env() {
-  cd "${PROJECT_ROOT}/python"
-
-  # Choose Python interpreter: prefer macOS /usr/bin/python3 (has Tk) then fall back to python3
+  local bootstrap_python
   if [ -x /usr/bin/python3 ]; then
-    PYTHON_BIN=/usr/bin/python3
+    bootstrap_python=/usr/bin/python3
   else
-    PYTHON_BIN=python3
+    bootstrap_python=python3
   fi
 
-  # Create venv if missing
-  if [ ! -d .venv ]; then
-    echo "Creating virtual environment using ${PYTHON_BIN}..."
-    "${PYTHON_BIN}" -m venv .venv
-  fi
-
-  # Activate venv
+  cd "${PROJECT_ROOT}/python" || return
+  "${bootstrap_python}" -m task_completion_detector.environment "$@" || return
   source .venv/bin/activate
-
-  # Install/update dependencies
-  pip install -r ../requirements.txt
 }
 
 migrate_screenshot_config() {
@@ -109,7 +104,9 @@ run_update() {
     exit 1
   }
   echo "Code update complete. Refreshing Python environment..."
-  bootstrap_python_env
+  # Reload updated setup code before refreshing the environment.
+  . "${PROJECT_ROOT}/setup/modules/task-watch-helpers.sh"
+  bootstrap_python_env --refresh
   echo "Python environment refreshed."
 
   migrate_screenshot_config

@@ -4,6 +4,20 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LAUNCHER_DIR="${SCRIPT_DIR}/launchers"
 TASK_WATCH_SCRIPT="${SCRIPT_DIR}/task-watch.sh"
+PROJECT_ROOT="${SCRIPT_DIR}"
+
+# Validate and prepare the user-owned runtime before creating launchers.
+if [ -n "${SUDO_USER:-}" ]; then
+  sudo -u "${SUDO_USER}" /bin/zsh -c '
+    set -e
+    PROJECT_ROOT="$1"
+    source "${PROJECT_ROOT}/setup/modules/task-watch-helpers.sh"
+    bootstrap_python_env --refresh
+  ' task-watch-setup "${PROJECT_ROOT}"
+else
+  source "${PROJECT_ROOT}/setup/modules/task-watch-helpers.sh"
+  bootstrap_python_env --refresh
+fi
 
 mkdir -p "${LAUNCHER_DIR}"
 
@@ -41,29 +55,6 @@ EOF
 
 chmod +x "${DESKTOP_DIR}/task-watch.command"
 
-########## Config setup guidance (guided Python wizard) ##########
-PYTHON_SETUP_DIR="${SCRIPT_DIR}/python"
-cd "${PYTHON_SETUP_DIR}"
-
-if [ -x /usr/bin/python3 ]; then
-  PYTHON_BIN=/usr/bin/python3
-else
-  PYTHON_BIN=python3
-fi
-
-if [ ! -d .venv ]; then
-  echo "Creating virtual environment for setup using ${PYTHON_BIN}..."
-  "${PYTHON_BIN}" -m venv .venv
-fi
-
-source .venv/bin/activate
-pip install -r ../requirements.txt
-
-echo "Starting guided configuration setup..."
-python main.py setup-config
-
-cd "${SCRIPT_DIR}"
-
 ########## Fix config ownership when run with sudo ##########
 if [ -n "${SUDO_USER}" ]; then
   TARGET_USER="${SUDO_USER}"
@@ -73,6 +64,14 @@ if [ -n "${SUDO_USER}" ]; then
     echo "To fix manually, run this from your normal user account:"
     echo "  sudo chown -R \"\$USER\":\"\$(id -gn \"\$USER\")\" \"${SCRIPT_DIR}/config\""
   }
+fi
+
+########## Config setup guidance (guided Python wizard) ##########
+echo "Starting guided configuration setup..."
+if [ -n "${SUDO_USER:-}" ]; then
+  sudo -u "${SUDO_USER}" "${SCRIPT_DIR}/python/.venv/bin/python" "${SCRIPT_DIR}/python/main.py" setup-config
+else
+  "${SCRIPT_DIR}/python/.venv/bin/python" "${SCRIPT_DIR}/python/main.py" setup-config
 fi
 
 echo "Installation complete."

@@ -3,6 +3,7 @@
 ## Prerequisites
 
 - **macOS** or **Windows 10/11** with Python 3.9+
+- **macOS:** Python must use OpenSSL 1.1.1 or newer. Install a Python build from [python.org](https://www.python.org/downloads/macos/) or Homebrew (`brew install python`). Apple's LibreSSL-based system Python is unsuitable for the application's HTTP dependencies.
 - Git
 - Optional: Telegram account (for Telegram notifications)
 - Optional: SMTP email account (for email notifications)
@@ -154,6 +155,15 @@ After this finishes you should be able to:
   - Negative coordinates are valid when a connected display is to the left of or above the main display; do not replace them with zero manually.
   - The monitor checks for off-screen regions on macOS when display information is available. Screenshot failures exit with status 1 and recovery instructions in both monitoring modes.
 
+- **`NotOpenSSLWarning` / an existing LibreSSL environment:**
+  - Run `task-watch --update`, then run `task-watch` again. An update started by an older launcher can finish using its already-loaded setup functions; the next launch uses the new environment checks.
+  - The launcher checks the existing environment's Python version and SSL backend. It reuses compatible environments and replaces incompatible ones using an OpenSSL-based Python found on `PATH`, in Homebrew's standard directories, or in python.org's framework directory. Finder shortcuts use the same setup.
+  - If no compatible interpreter is installed, setup stops with installation instructions. Install Python as described in the prerequisites, then retry.
+  - To choose the interpreter for a new or replacement environment, use `TASK_WATCH_PYTHON=/absolute/path/to/python3 task-watch`. This setting does not replace an already compatible environment.
+  - Replacement preserves the old environment under `python/.venv-backup-<id>`. Failed environment creation or package installation restores the original environment. Keep the backup until the new environment works; a backup must be moved back to `python/.venv` before being used directly because virtual environments contain absolute paths.
+  - Saved regions and notification settings stay in `config/config.txt`, outside the environment. Setup and updates upgrade pip inside the virtual environment. Requirements are installed through that environment's Python without forcing dependency upgrades.
+  - This fixes the SSL backend; urllib3 warnings are not filtered and urllib3 is not downgraded. See the [urllib3 migration guide](https://urllib3.readthedocs.io/en/stable/v2-migration-guide.html) for supported TLS libraries.
+
 - **Cannot create `/usr/local/bin` symlinks:**
   - Run `./install.sh` with `sudo` if you want global `task-watch` (and alias) commands.
   - The script will attempt to fix the ownership of the `config` directory back to your normal user.
@@ -194,7 +204,7 @@ PYTHONPATH=python python -m unittest discover -s python/tests -v
 These tests mock the display and capture boundaries and disable notification transports.
 They do not capture your desktop or send notifications.
 
-New capture diagnostics use Python's standard `gettext` provider with English and German catalogs under
+Capture and environment diagnostics use Python's standard `gettext` provider with English and German catalogs under
 `python/task_completion_detector/locales/`. Other existing CLI messages retain their current language.
 Locale selection follows `LANGUAGE`, `LC_ALL`, `LC_MESSAGES`, and `LANG`, with English as the fallback.
 After editing a catalog, regenerate its compiled file using GNU gettext, for example:

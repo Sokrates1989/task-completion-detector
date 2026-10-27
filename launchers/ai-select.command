@@ -3,19 +3,10 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-cd "${PROJECT_ROOT}/python"
 
-# Create venv if missing
-if [ ! -d .venv ]; then
-  echo "Creating virtual environment..."
-  python3 -m venv .venv
-fi
-
-# Activate venv
-source .venv/bin/activate
-
-# Install/update dependencies
-pip install -r ../requirements.txt
+# Reuse environment setup while preserving this shortcut's selection-only mode.
+source "${PROJECT_ROOT}/setup/modules/task-watch-helpers.sh"
+bootstrap_python_env
 
 # Run region selection for default region name
 python main.py select-region --name default

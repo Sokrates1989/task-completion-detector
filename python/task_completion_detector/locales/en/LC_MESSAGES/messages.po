@@ -22,3 +22,18 @@ msgstr "Could not capture region '{name}' (x={x}, y={y}, width={width}, height={
 
 msgid "capture.macos_permission"
 msgstr "If capture still fails, allow Screen Recording for your terminal in System Settings > Privacy & Security, then restart the terminal."
+
+msgid "environment.preparing"
+msgstr "Preparing the Python environment using {python}..."
+
+msgid "environment.backup"
+msgstr "The previous Python environment is preserved at {backup}."
+
+msgid "environment.restored"
+msgstr "Setup failed; the previous Python environment has been restored."
+
+msgid "environment.python_required"
+msgstr "Python 3.9 or newer with OpenSSL 1.1.1 or newer is required. Install Python from python.org or run 'brew install python', then run task-watch again. Set TASK_WATCH_PYTHON to an interpreter path to choose the Python used for a new environment."
+
+msgid "environment.failed"
+msgstr "Could not prepare the Python environment. Check the command output above and try again."
