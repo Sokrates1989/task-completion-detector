@@ -10,6 +10,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "capture.offscreen"
 msgstr "Saved region '{name}' (x={x}, y={y}, width={width}, height={height}) is outside the connected displays. Your display layout may have changed. Run {command} to select a visible region."
@@ -42,13 +43,32 @@ msgid "monitor.started.subject"
 msgstr "Monitoring started"
 
 msgid "monitor.started.stable"
-msgstr "Monitoring started (task-watch).\nWatching '{name}'.\nChecks every {interval_seconds:g}s. I'll notify you after {stable_seconds:g}s of stability: the image difference between consecutive checks stays ≤ {difference_threshold:g} on a 0–255 scale."
+msgid_plural "monitor.started.stable.plural"
+msgstr[0] "Monitoring started.\nI'll notify you when there's no activity in the watched area for {stable_seconds:g} second."
+msgstr[1] "Monitoring started.\nI'll notify you when there's no activity in the watched area for {stable_seconds:g} seconds."
 
 msgid "monitor.started.change"
-msgstr "Monitoring started (change-watch).\nWatching '{name}'.\nChecks every {interval_seconds:g}s. I'll notify you when the image differs from the starting view by > {difference_threshold:g} on a 0–255 scale for {required_hits} consecutive checks."
+msgstr "Monitoring started.\nI'll notify you when the watched area changes."
 
 msgid "monitor.started.telegram_failed"
 msgstr "Could not send the startup message via Telegram. Monitoring continues; check your Telegram settings and connection."
 
 msgid "monitor.started.email_failed"
 msgstr "Could not send the startup email. Monitoring continues; check your email settings and connection."
+
+msgid "monitor.completed.stable_subject"
+msgstr "No activity detected"
+
+msgid "monitor.completed.stable"
+msgid_plural "monitor.completed.stable.plural"
+msgstr[0] "No activity in the watched area for {seconds:g} second."
+msgstr[1] "No activity in the watched area for {seconds:g} seconds."
+
+msgid "monitor.completed.change_subject"
+msgstr "Watched area changed"
+
+msgid "monitor.completed.change"
+msgstr "The watched area has changed."
+
+msgid "monitor.completed.comparison"
+msgstr "{message}\nBefore (left) · After (right)"

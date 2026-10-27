@@ -42,6 +42,19 @@ class TranslationTests(unittest.TestCase):
                 with patch.dict(os.environ, environment, clear=True):
                     self.assertIn(expected, translate("capture.macos_permission"))
 
+    def test_notification_durations_use_singular_plural_and_fractional_seconds(self) -> None:
+        for language, singular, plural in (("en", "second", "seconds"), ("de", "Sekunde", "Sekunden")):
+            with patch.dict(os.environ, {"LANGUAGE": language}):
+                for seconds in (1, 60, 1.5):
+                    expected = singular if seconds == 1 else plural
+                    with self.subTest(language=language, seconds=seconds):
+                        started = translate("monitor.started.stable", count=seconds, stable_seconds=seconds)
+                        completed = translate("monitor.completed.stable", count=seconds, seconds=seconds)
+                        for message in (started, completed):
+                            self.assertIn(f"{seconds:g} {expected}", message)
+                            if seconds == 1:
+                                self.assertNotIn(plural, message)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -108,13 +108,13 @@ class StartupNotificationTests(unittest.TestCase):
         self.telegram.send_photo.assert_called_once()
         self.assertIs(self.telegram.send_photo.call_args.args[0], self.black)
         message = self.telegram.send_photo.call_args.kwargs["caption"]
-        for expected in ("Monitoring started (task-watch)", "assistant panel", "0.5s", "1s of stability", "≤ 7.5", "consecutive checks"):
+        for expected in ("Monitoring started", "notify you", "no activity", "1 second"):
             self.assertIn(expected, message)
-        for removed in ("x=", "y=", "20×10", " px"):
+        for removed in ("x=", "y=", "20×10", " px", "0–255", "7.5", "checks", "task-watch", "assistant panel"):
             self.assertNotIn(removed, message)
         self.assertEqual(self.email.send_simple_mail.call_args_list[0].args, ("Monitoring started", message))
         self.telegram.send_message.assert_called_once()
-        self.assertIn("No more activity", self.telegram.send_message.call_args.args[0])
+        self.assertIn("No activity", self.telegram.send_message.call_args.args[0])
         self.local.send_notification.assert_called_once()
 
     def test_change_startup_matches_reference_image_and_confirmation_rule(self) -> None:
@@ -123,11 +123,12 @@ class StartupNotificationTests(unittest.TestCase):
         self.telegram.send_photo.assert_called_once()
         self.assertIs(self.telegram.send_photo.call_args.args[0], self.black)
         message = self.telegram.send_photo.call_args.kwargs["caption"]
-        for expected in ("Monitoring started (change-watch)", "assistant panel", "starting view", "> 7.5", "2 consecutive checks", "0.5s"):
+        for expected in ("Monitoring started", "notify you", "watched area changes"):
             self.assertIn(expected, message)
-        self.assertNotIn("of stability", message)
+        for removed in ("stability", "0–255", "7.5", "checks", "change-watch", "assistant panel"):
+            self.assertNotIn(removed, message)
         self.telegram.send_message.assert_called_once()
-        self.assertIn("Change detected", self.telegram.send_message.call_args.args[0])
+        self.assertIn("watched area has changed", self.telegram.send_message.call_args.args[0])
         self.local.send_notification.assert_called_once()
 
     def test_initial_capture_failure_sends_no_notification_in_either_mode(self) -> None:
@@ -150,7 +151,7 @@ class StartupNotificationTests(unittest.TestCase):
         self.assertIs(startup.args[0], self.black)
         self.assertIn("Monitoring started", startup.kwargs["caption"])
         self.assertIs(completion.args[0], self.white)
-        self.assertIn("No more activity", completion.kwargs["caption"])
+        self.assertIn("No activity", completion.kwargs["caption"])
         self.assertEqual(self.email.send_simple_mail.call_count, 2)
 
     def test_failed_channel_is_reported_and_other_channel_and_monitor_continue(self) -> None:
@@ -186,10 +187,12 @@ class StartupNotificationTests(unittest.TestCase):
             self._run(is_change=True)
         message = self.telegram.send_photo.call_args.kwargs["caption"]
         self.assertIn("Überwachung gestartet", message)
-        self.assertIn("2 aufeinanderfolgenden Prüfungen", message)
-        for removed in ("x=", "y=", "20×10", " px"):
+        self.assertIn("wenn sich der beobachtete Bereich verändert", message)
+        for removed in ("x=", "y=", "20×10", " px", "0–255", "Bildabweichung", "Prüfungen", "change-watch"):
             self.assertNotIn(removed, message)
         self.assertEqual(self.email.send_simple_mail.call_args_list[0].args[0], "Überwachung gestartet")
+        self.assertIn("hat sich verändert", self.telegram.send_message.call_args.args[0])
+        self.assertEqual(self.email.send_simple_mail.call_args.args[0], "Beobachteter Bereich verändert")
 
 
 class TelegramResultTests(unittest.TestCase):

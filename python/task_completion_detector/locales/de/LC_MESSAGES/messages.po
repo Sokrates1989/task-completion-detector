@@ -10,6 +10,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "capture.offscreen"
 msgstr "Der gespeicherte Bereich '{name}' (x={x}, y={y}, Breite={width}, Höhe={height}) liegt außerhalb der angeschlossenen Bildschirme. Die Bildschirmanordnung hat sich möglicherweise geändert. Wähle mit {command} einen sichtbaren Bereich aus."
@@ -42,13 +43,32 @@ msgid "monitor.started.subject"
 msgstr "Überwachung gestartet"
 
 msgid "monitor.started.stable"
-msgstr "Überwachung gestartet (task-watch).\nBeobachteter Bereich '{name}'.\nPrüfung alle {interval_seconds:g}s. Ich benachrichtige dich nach {stable_seconds:g}s stabiler Anzeige: Die Bildabweichung zwischen aufeinanderfolgenden Prüfungen bleibt auf einer Skala von 0–255 bei ≤ {difference_threshold:g}."
+msgid_plural "monitor.started.stable.plural"
+msgstr[0] "Überwachung gestartet.\nIch benachrichtige dich, wenn im beobachteten Bereich {stable_seconds:g} Sekunde lang keine Aktivität zu sehen ist."
+msgstr[1] "Überwachung gestartet.\nIch benachrichtige dich, wenn im beobachteten Bereich {stable_seconds:g} Sekunden lang keine Aktivität zu sehen ist."
 
 msgid "monitor.started.change"
-msgstr "Überwachung gestartet (change-watch).\nBeobachteter Bereich '{name}'.\nPrüfung alle {interval_seconds:g}s. Ich benachrichtige dich, wenn die Bildabweichung gegenüber dem Startbild bei {required_hits} aufeinanderfolgenden Prüfungen auf einer Skala von 0–255 über {difference_threshold:g} liegt."
+msgstr "Überwachung gestartet.\nIch benachrichtige dich, wenn sich der beobachtete Bereich verändert."
 
 msgid "monitor.started.telegram_failed"
 msgstr "Die Startnachricht konnte nicht über Telegram gesendet werden. Die Überwachung läuft weiter; prüfe deine Telegram-Einstellungen und die Verbindung."
 
 msgid "monitor.started.email_failed"
 msgstr "Die Start-E-Mail konnte nicht gesendet werden. Die Überwachung läuft weiter; prüfe deine E-Mail-Einstellungen und die Verbindung."
+
+msgid "monitor.completed.stable_subject"
+msgstr "Keine Aktivität erkannt"
+
+msgid "monitor.completed.stable"
+msgid_plural "monitor.completed.stable.plural"
+msgstr[0] "Im beobachteten Bereich gab es seit {seconds:g} Sekunde keine Aktivität."
+msgstr[1] "Im beobachteten Bereich gab es seit {seconds:g} Sekunden keine Aktivität."
+
+msgid "monitor.completed.change_subject"
+msgstr "Beobachteter Bereich verändert"
+
+msgid "monitor.completed.change"
+msgstr "Der beobachtete Bereich hat sich verändert."
+
+msgid "monitor.completed.comparison"
+msgstr "{message}\nVorher (links) · Nachher (rechts)"

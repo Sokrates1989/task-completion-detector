@@ -21,12 +21,12 @@ Notifications can be sent via:
 
 ### Startup confirmation
 
-Each monitoring run automatically sends one **Monitoring started** message through every enabled Telegram/email channel after the first successful screen capture. Telegram includes that captured region as a photo so you can visually verify the watched area. The caption/email body identifies the region by name and briefly explains the active criteria:
+Each monitoring run automatically sends one **Monitoring started** message through every enabled Telegram/email channel after the first successful screen capture. Telegram includes that captured region as a photo so you can visually verify the watched area. The caption/email body explains when you'll hear back in plain language:
 
-- **task-watch:** the check interval and stability duration, plus the maximum image difference allowed between consecutive checks. The duration includes any `--stable-seconds` override for that run.
-- **change-watch:** the check interval and difference threshold relative to the starting image. The difference must exceed the threshold for two consecutive checks before the change alert is sent.
+- **task-watch:** "I'll notify you when there's no activity in the watched area for 60 seconds." The duration uses your settings, including any `--stable-seconds` override.
+- **change-watch:** "I'll notify you when the watched area changes."
 
-The difference score is the average grayscale pixel difference on a 0–255 scale. Startup messages use your effective settings and the terminal's English/German locale.
+Startup captions and follow-up alerts use the terminal's English/German locale. They omit technical scores, checking details, and internal region/command names. Detection sensitivity and the two-check confirmation rule still work as configured; message wording does not change them.
 
 Telegram startup confirmations always include the first captured region, independently of the `includeScreenshotInTelegram` setting for later event alerts. Email confirmations use text. Startup text omits pixel coordinates and dimensions. Local desktop notifications remain reserved for the detected event. No confirmation is sent if the first screen capture fails.
 

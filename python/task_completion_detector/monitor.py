@@ -70,20 +70,16 @@ class RegionMonitor:
     def _send_monitoring_started(self, is_change: bool, image: Image.Image) -> None:
         """Send the first region image to Telegram and startup text to email.
 
-        Called only after the first successful capture. Describe the effective
-        settings in the caption/body. The Telegram preview is independent of
+        Called only after the first successful capture. Explain when a follow-up
+        will be sent in the caption/body. The Telegram preview is independent of
         completion screenshot settings. Report failed/unconfigured channels
         without stopping the monitor or preventing the other channel's send.
         """
-        key = "monitor.started.change" if is_change else "monitor.started.stable"
-        message = translate(
-            key,
-            name=self._name,
-            interval_seconds=self._settings.interval_seconds,
-            stable_seconds=self._settings.stable_seconds_threshold,
-            difference_threshold=self._settings.difference_threshold,
-            required_hits=_CHANGE_REQUIRED_HITS,
-        )
+        if is_change:
+            message = translate("monitor.started.change")
+        else:
+            seconds = self._settings.stable_seconds_threshold
+            message = translate("monitor.started.stable", count=seconds, stable_seconds=seconds)
         if self._telegram is not None:
             if not self._telegram.is_configured() or not self._telegram.send_photo(image, caption=message):
                 print(translate("monitor.started.telegram_failed"), file=sys.stderr)
@@ -103,11 +99,14 @@ class RegionMonitor:
     def _send_notifications(
         self,
         message: str,
-        subject: str = "Task completion detected",
+        subject: Optional[str] = None,
         image=None,
         before_image=None,
         after_image=None,
     ) -> None:
+        """Send an event alert, defaulting the email subject to an inactivity alert."""
+        if subject is None:
+            subject = translate("monitor.completed.stable_subject")
         if self._telegram and self._telegram.is_configured():
             if getattr(self, "_include_screenshot_telegram", False):
                 send_image = image
@@ -122,7 +121,7 @@ class RegionMonitor:
                             combined.paste(before_image.convert("RGB"), (0, 0))
                             combined.paste(after_image.convert("RGB"), (before_image.width, 0))
                             send_image = combined
-                            caption = f"{message}\n(Left: before, Right: after)"
+                            caption = translate("monitor.completed.comparison", message=message)
                         except Exception:
                             send_image = after_image or before_image
                     else:
@@ -174,7 +173,9 @@ class RegionMonitor:
                     print(
                         f"Selected region stable for {stable_time:.0f}s (score <= {diff_threshold}). Sending notifications."
                     )
-                    message = f"No more activity detected in the selected area for {stable_time:.0f} seconds."
+                    message = translate(
+                        "monitor.completed.stable", count=stable_time, seconds=stable_time
+                    )
                     self._send_notifications(message, image=current)
 
                     if self._use_local and platform.system() == "Darwin":
@@ -239,10 +240,10 @@ class RegionMonitor:
                 print(
                     f"Change detected! (diff score: {score:.2f} > {diff_threshold}). Sending notifications."
                 )
-                message = f"Change detected in the monitored area! The watched region has changed."
+                message = translate("monitor.completed.change")
                 self._send_notifications(
                     message,
-                    subject="Change detected",
+                    subject=translate("monitor.completed.change_subject"),
                     before_image=reference_image,
                     after_image=current,
                 )
