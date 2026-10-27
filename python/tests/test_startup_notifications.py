@@ -40,6 +40,7 @@ class StartupNotificationTests(unittest.TestCase):
         self.telegram.is_configured.return_value = True
         self.email.is_configured.return_value = True
         self.telegram.send_message.side_effect = self._send_telegram
+        self.telegram.send_photo.side_effect = self._send_telegram_photo
         self.email.send_simple_mail.side_effect = self._send_email
         for patcher in (
             patch("task_completion_detector.monitor.platform.system", return_value="Darwin"),
@@ -62,6 +63,10 @@ class StartupNotificationTests(unittest.TestCase):
             self.addCleanup(redirect.__exit__, None, None, None)
 
     def _send_telegram(self, _message: str) -> bool:
+        self.events.append("telegram")
+        return True
+
+    def _send_telegram_photo(self, _image: Image.Image, caption: str) -> bool:
         self.events.append("telegram")
         return True
 
@@ -100,23 +105,29 @@ class StartupNotificationTests(unittest.TestCase):
     def test_stability_startup_describes_effective_criteria_then_completion_follows(self) -> None:
         self._run(is_change=False)
         self.assertEqual(self.events[:3], ["capture", "telegram", "email"])
-        self.assertEqual(self.telegram.send_message.call_count, 2)
-        message = self.telegram.send_message.call_args_list[0].args[0]
-        for expected in ("Monitoring started (task-watch)", "assistant panel", "x=601", "y=608", "20×10", "0.5s", "1s of stability", "≤ 7.5", "consecutive checks"):
+        self.telegram.send_photo.assert_called_once()
+        self.assertIs(self.telegram.send_photo.call_args.args[0], self.black)
+        message = self.telegram.send_photo.call_args.kwargs["caption"]
+        for expected in ("Monitoring started (task-watch)", "assistant panel", "0.5s", "1s of stability", "≤ 7.5", "consecutive checks"):
             self.assertIn(expected, message)
+        for removed in ("x=", "y=", "20×10", " px"):
+            self.assertNotIn(removed, message)
         self.assertEqual(self.email.send_simple_mail.call_args_list[0].args, ("Monitoring started", message))
-        self.assertIn("No more activity", self.telegram.send_message.call_args_list[1].args[0])
+        self.telegram.send_message.assert_called_once()
+        self.assertIn("No more activity", self.telegram.send_message.call_args.args[0])
         self.local.send_notification.assert_called_once()
 
     def test_change_startup_matches_reference_image_and_confirmation_rule(self) -> None:
         self._run(is_change=True)
         self.assertEqual(self.events[:3], ["capture", "telegram", "email"])
-        self.assertEqual(self.telegram.send_message.call_count, 2)
-        message = self.telegram.send_message.call_args_list[0].args[0]
+        self.telegram.send_photo.assert_called_once()
+        self.assertIs(self.telegram.send_photo.call_args.args[0], self.black)
+        message = self.telegram.send_photo.call_args.kwargs["caption"]
         for expected in ("Monitoring started (change-watch)", "assistant panel", "starting view", "> 7.5", "2 consecutive checks", "0.5s"):
             self.assertIn(expected, message)
         self.assertNotIn("of stability", message)
-        self.assertIn("Change detected", self.telegram.send_message.call_args_list[1].args[0])
+        self.telegram.send_message.assert_called_once()
+        self.assertIn("Change detected", self.telegram.send_message.call_args.args[0])
         self.local.send_notification.assert_called_once()
 
     def test_initial_capture_failure_sends_no_notification_in_either_mode(self) -> None:
@@ -126,20 +137,25 @@ class StartupNotificationTests(unittest.TestCase):
                 with self.assertRaises(ScreenCaptureError):
                     method()
         self.telegram.send_message.assert_not_called()
+        self.telegram.send_photo.assert_not_called()
         self.email.send_simple_mail.assert_not_called()
         self.local.send_notification.assert_not_called()
 
-    def test_startup_is_text_only_when_completion_screenshots_are_enabled(self) -> None:
+    def test_startup_preview_and_completion_screenshot_remain_separate(self) -> None:
         self.config.load.return_value["notifications"]["includeScreenshotInTelegram"] = True
         self._run(is_change=False)
-        self.telegram.send_message.assert_called_once()
-        self.assertIn("Monitoring started", self.telegram.send_message.call_args.args[0])
-        self.telegram.send_photo.assert_called_once()
+        self.telegram.send_message.assert_not_called()
+        self.assertEqual(self.telegram.send_photo.call_count, 2)
+        startup, completion = self.telegram.send_photo.call_args_list
+        self.assertIs(startup.args[0], self.black)
+        self.assertIn("Monitoring started", startup.kwargs["caption"])
+        self.assertIs(completion.args[0], self.white)
+        self.assertIn("No more activity", completion.kwargs["caption"])
         self.assertEqual(self.email.send_simple_mail.call_count, 2)
 
     def test_failed_channel_is_reported_and_other_channel_and_monitor_continue(self) -> None:
-        self.telegram.send_message.side_effect = None
-        self.telegram.send_message.return_value = False
+        self.telegram.send_photo.side_effect = None
+        self.telegram.send_photo.return_value = False
         self._run(is_change=False)
         self.assertIn("Could not send the startup message via Telegram", self.stderr.getvalue())
         self.assertEqual(self.email.send_simple_mail.call_count, 2)
@@ -150,6 +166,7 @@ class StartupNotificationTests(unittest.TestCase):
         self.email.is_configured.return_value = False
         self._run(is_change=True)
         self.telegram.send_message.assert_not_called()
+        self.telegram.send_photo.assert_not_called()
         self.email.send_simple_mail.assert_not_called()
         self.assertIn("Telegram", self.stderr.getvalue())
         self.assertIn("startup email", self.stderr.getvalue())
@@ -159,6 +176,7 @@ class StartupNotificationTests(unittest.TestCase):
         self.config.load.return_value["notifications"].update(useTelegram=False, useEmail=False)
         self._run(is_change=False)
         self.telegram.send_message.assert_not_called()
+        self.telegram.send_photo.assert_not_called()
         self.email.send_simple_mail.assert_not_called()
         self.local.send_notification.assert_called_once()
         self.assertEqual(self.stderr.getvalue(), "")
@@ -166,9 +184,11 @@ class StartupNotificationTests(unittest.TestCase):
     def test_startup_uses_german_locale(self) -> None:
         with patch.dict(os.environ, {"LANGUAGE": "de"}):
             self._run(is_change=True)
-        message = self.telegram.send_message.call_args_list[0].args[0]
+        message = self.telegram.send_photo.call_args.kwargs["caption"]
         self.assertIn("Überwachung gestartet", message)
         self.assertIn("2 aufeinanderfolgenden Prüfungen", message)
+        for removed in ("x=", "y=", "20×10", " px"):
+            self.assertNotIn(removed, message)
         self.assertEqual(self.email.send_simple_mail.call_args_list[0].args[0], "Überwachung gestartet")
 
 
@@ -179,6 +199,8 @@ class TelegramResultTests(unittest.TestCase):
         config = Mock()
         config.load.return_value = {"telegram": {"botToken": "example-token", "chatID": "example-chat"}}
         self.notifier = TelegramNotifier(config)
+        self.image = Image.new("RGB", (20, 10), "red")
+        self.addCleanup(self.image.close)
 
     def test_success_requires_positive_api_result(self) -> None:
         with patch("task_completion_detector.notifications.telegram_notifier.requests.post") as post:
@@ -203,6 +225,54 @@ class TelegramResultTests(unittest.TestCase):
         self.notifier._bot_token = ""
         with patch("task_completion_detector.notifications.telegram_notifier.requests.post") as post:
             self.assertFalse(self.notifier.send_message("startup"))
+        post.assert_not_called()
+
+    def test_photo_upload_contains_exact_region_png_and_caption_and_closes_buffer(self) -> None:
+        uploaded = {}
+        response = Mock()
+        response.json.return_value = {"ok": True}
+
+        def post(_url: str, **kwargs) -> Mock:
+            uploaded.update(kwargs)
+            buffer = kwargs["files"]["photo"][1]
+            with Image.open(io.BytesIO(buffer.read())) as decoded:
+                self.assertEqual(decoded.size, self.image.size)
+                self.assertEqual(decoded.tobytes(), self.image.tobytes())
+            return response
+
+        with patch("task_completion_detector.notifications.telegram_notifier.requests.post", side_effect=post):
+            self.assertTrue(self.notifier.send_photo(self.image, caption="Monitoring started"))
+        self.assertEqual(uploaded["data"]["caption"], "Monitoring started")
+        self.assertEqual(uploaded["timeout"], 10)
+        self.assertTrue(uploaded["files"]["photo"][1].closed)
+        self.assertEqual(self.image.getpixel((0, 0)), (255, 0, 0))
+
+    def test_photo_http_api_network_and_json_failures_return_false(self) -> None:
+        with patch("task_completion_detector.notifications.telegram_notifier.requests.post") as post:
+            post.return_value.json.return_value = {"ok": False}
+            self.assertFalse(self.notifier.send_photo(self.image))
+            post.return_value.raise_for_status.side_effect = requests.HTTPError("example rejection")
+            self.assertFalse(self.notifier.send_photo(self.image))
+            post.return_value.raise_for_status.side_effect = None
+            post.return_value.json.side_effect = ValueError("not JSON")
+            self.assertFalse(self.notifier.send_photo(self.image))
+            post.side_effect = requests.Timeout("example timeout")
+            self.assertFalse(self.notifier.send_photo(self.image))
+
+    def test_missing_photo_or_credentials_does_not_contact_telegram(self) -> None:
+        with patch("task_completion_detector.notifications.telegram_notifier.requests.post") as post:
+            self.assertFalse(self.notifier.send_photo(None))
+            self.notifier._bot_token = ""
+            self.assertFalse(self.notifier.send_photo(self.image))
+        post.assert_not_called()
+
+    def test_photo_encoding_failure_closes_buffer_without_http_request(self) -> None:
+        buffer = io.BytesIO()
+        with patch("task_completion_detector.notifications.telegram_notifier.BytesIO", return_value=buffer):
+            with patch.object(self.image, "save", side_effect=OSError("encoding failed")):
+                with patch("task_completion_detector.notifications.telegram_notifier.requests.post") as post:
+                    self.assertFalse(self.notifier.send_photo(self.image))
+        self.assertTrue(buffer.closed)
         post.assert_not_called()
 
 

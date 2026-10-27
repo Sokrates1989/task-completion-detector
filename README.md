@@ -5,7 +5,7 @@ Get notified when your AI coding assistant needs you. Never miss a task completi
 - **task-watch** – Notify when a region becomes **stable** (no activity for X seconds)
 - **change-watch** – Notify when a region **changes**, confirmed by two consecutive checks (useful for watching static indicators like pause buttons)
 
-When monitoring starts, enabled Telegram/email channels receive a brief confirmation identifying the region and active notification criteria. See [startup confirmation](docs/USAGE.md#startup-confirmation) for details.
+When monitoring starts, enabled Telegram/email channels receive a brief confirmation with the region name and active notification criteria. Telegram also includes a screenshot of the watched area for visual verification. See [startup confirmation](docs/USAGE.md#startup-confirmation) for details.
 
 ## 🚀 Quick Install
 

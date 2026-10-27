@@ -42,10 +42,10 @@ msgid "monitor.started.subject"
 msgstr "Monitoring started"
 
 msgid "monitor.started.stable"
-msgstr "Monitoring started (task-watch).\nWatching '{name}': x={x}, y={y}, {width}×{height} px.\nChecks every {interval_seconds:g}s. I'll notify you after {stable_seconds:g}s of stability: the image difference between consecutive checks stays ≤ {difference_threshold:g} on a 0–255 scale."
+msgstr "Monitoring started (task-watch).\nWatching '{name}'.\nChecks every {interval_seconds:g}s. I'll notify you after {stable_seconds:g}s of stability: the image difference between consecutive checks stays ≤ {difference_threshold:g} on a 0–255 scale."
 
 msgid "monitor.started.change"
-msgstr "Monitoring started (change-watch).\nWatching '{name}': x={x}, y={y}, {width}×{height} px.\nChecks every {interval_seconds:g}s. I'll notify you when the image differs from the starting view by > {difference_threshold:g} on a 0–255 scale for {required_hits} consecutive checks."
+msgstr "Monitoring started (change-watch).\nWatching '{name}'.\nChecks every {interval_seconds:g}s. I'll notify you when the image differs from the starting view by > {difference_threshold:g} on a 0–255 scale for {required_hits} consecutive checks."
 
 msgid "monitor.started.telegram_failed"
 msgstr "Could not send the startup message via Telegram. Monitoring continues; check your Telegram settings and connection."

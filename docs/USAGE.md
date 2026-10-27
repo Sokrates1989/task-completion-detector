@@ -21,14 +21,14 @@ Notifications can be sent via:
 
 ### Startup confirmation
 
-Each monitoring run automatically sends one **Monitoring started** message through every enabled Telegram/email channel after the first successful screen capture. It identifies the region by name, coordinates, and size, and briefly explains the active criteria:
+Each monitoring run automatically sends one **Monitoring started** message through every enabled Telegram/email channel after the first successful screen capture. Telegram includes that captured region as a photo so you can visually verify the watched area. The caption/email body identifies the region by name and briefly explains the active criteria:
 
 - **task-watch:** the check interval and stability duration, plus the maximum image difference allowed between consecutive checks. The duration includes any `--stable-seconds` override for that run.
 - **change-watch:** the check interval and difference threshold relative to the starting image. The difference must exceed the threshold for two consecutive checks before the change alert is sent.
 
 The difference score is the average grayscale pixel difference on a 0–255 scale. Startup messages use your effective settings and the terminal's English/German locale.
 
-Startup confirmations are text-only, including when Telegram screenshots are enabled. Local desktop notifications remain reserved for the detected event. No confirmation is sent if the first screen capture fails.
+Telegram startup confirmations always include the first captured region, independently of the `includeScreenshotInTelegram` setting for later event alerts. Email confirmations use text. Startup text omits pixel coordinates and dimensions. Local desktop notifications remain reserved for the detected event. No confirmation is sent if the first screen capture fails.
 
 If an enabled channel is missing credentials or rejects/fails to send the startup message, the terminal reports which channel failed. Monitoring continues and the other enabled channel is still attempted. Receiving the confirmation lets you check that channel before waiting for the final alert.
 

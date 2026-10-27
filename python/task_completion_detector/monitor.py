@@ -67,28 +67,25 @@ class RegionMonitor:
         """Capture the selected region, propagating recoverable capture failures."""
         return capture_region(self._region)
 
-    def _send_monitoring_started(self, is_change: bool) -> None:
-        """Send one text-only startup message through enabled remote channels.
+    def _send_monitoring_started(self, is_change: bool, image: Image.Image) -> None:
+        """Send the first region image to Telegram and startup text to email.
 
         Called only after the first successful capture. Describe the effective
-        settings and report failed/unconfigured channels without stopping the
-        monitor or preventing the other channel from being attempted.
+        settings in the caption/body. The Telegram preview is independent of
+        completion screenshot settings. Report failed/unconfigured channels
+        without stopping the monitor or preventing the other channel's send.
         """
         key = "monitor.started.change" if is_change else "monitor.started.stable"
         message = translate(
             key,
             name=self._name,
-            x=self._region.x,
-            y=self._region.y,
-            width=self._region.width,
-            height=self._region.height,
             interval_seconds=self._settings.interval_seconds,
             stable_seconds=self._settings.stable_seconds_threshold,
             difference_threshold=self._settings.difference_threshold,
             required_hits=_CHANGE_REQUIRED_HITS,
         )
         if self._telegram is not None:
-            if not self._telegram.is_configured() or not self._telegram.send_message(message):
+            if not self._telegram.is_configured() or not self._telegram.send_photo(image, caption=message):
                 print(translate("monitor.started.telegram_failed"), file=sys.stderr)
         if self._email is not None:
             if not self._email.is_configured() or not self._email.send_simple_mail(
@@ -161,7 +158,7 @@ class RegionMonitor:
             current = self._capture_region()
 
             if last_image is None:
-                self._send_monitoring_started(is_change=False)
+                self._send_monitoring_started(is_change=False, image=current)
 
             if last_image is not None:
                 score = self._difference_score(last_image, current)
@@ -222,7 +219,7 @@ class RegionMonitor:
 
         # Capture initial reference image
         reference_image = self._capture_region()
-        self._send_monitoring_started(is_change=True)
+        self._send_monitoring_started(is_change=True, image=reference_image)
         print("Reference image captured. Watching for changes...")
         required_hits = _CHANGE_REQUIRED_HITS
         consecutive_hits = 0

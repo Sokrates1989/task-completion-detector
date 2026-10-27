@@ -4,6 +4,7 @@ from io import BytesIO
 from typing import Optional
 
 import requests
+from PIL import Image
 
 from ..config_loader import ConfigLoader
 
@@ -41,28 +42,28 @@ class TelegramNotifier:
         except (requests.RequestException, ValueError):
             return False
 
-    def send_photo(self, image, caption: Optional[str] = None) -> None:
-        if not self.is_configured():
-            return
-        if image is None:
-            return
+    def send_photo(self, image: Optional[Image.Image], caption: Optional[str] = None) -> bool:
+        """Return whether Telegram accepted a PNG screenshot and optional caption.
+
+        Missing credentials/image, encoding failures, malformed responses and
+        transport/API errors return False. The upload buffer closes on every
+        path; the caller retains ownership of the image. Requests use the same
+        ten-second timeout as text messages.
+        """
+        if not self.is_configured() or image is None:
+            return False
         url = f"https://api.telegram.org/bot{self._bot_token}/sendPhoto"
         try:
-            buffer = BytesIO()
-            image.save(buffer, format="PNG")
-            buffer.seek(0)
-            files = {
-                "photo": ("screenshot.png", buffer, "image/png"),
-            }
-            data = {"chat_id": self._chat_id}
-            if caption is not None:
-                data["caption"] = caption
-            requests.post(url, data=data, files=files, timeout=10)
-        except Exception:
-            # Best-effort; ignore network errors for now.
-            pass
-        finally:
-            try:
-                buffer.close()
-            except Exception:
-                pass
+            with BytesIO() as buffer:
+                image.save(buffer, format="PNG")
+                buffer.seek(0)
+                files = {"photo": ("screenshot.png", buffer, "image/png")}
+                data = {"chat_id": self._chat_id}
+                if caption is not None:
+                    data["caption"] = caption
+                response = requests.post(url, data=data, files=files, timeout=10)
+                response.raise_for_status()
+                result = response.json()
+                return isinstance(result, dict) and result.get("ok") is True
+        except (requests.RequestException, OSError, ValueError):
+            return False
